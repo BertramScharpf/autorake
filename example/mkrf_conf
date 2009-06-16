@@ -1,0 +1,61 @@
+#!/usr/bin/env autorake
+
+#
+#  mkrf_conf  --  configure Notempty
+#
+
+# Call this using a command like:
+#
+#   $ ./mkrf_conf --help
+#   $ ./mkrf_conf --prefix /usr --disable-dummy
+#
+# (You have to disable the dummy feature because it won't work.)
+#
+# A file .configure will be created. Then run
+#
+#   $ rake
+#   $ irb -r ./notempty
+#   irb(main):001:0> "".notempty?
+#   => nil
+#   irb(main):002:0> "x".notempty?
+#   => "x"
+#
+# Notice as well the #ifdef directives in the C source.
+#
+
+
+require "rbconfig"
+incdir_ruby RbConfig::CONFIG[ "topdir"]
+
+have_header "ruby.h"
+have_header "st.h"
+
+
+have_func "rb_define_method", "ruby.h"
+
+
+# Dummies just to demonstrate:
+
+enable_some_feature
+disable_other_feature
+
+with_foo "Foo"
+
+have_library "ssl"
+
+
+enable_postgresql
+have_library "pq", :postgresql # check only if postgresql enabled
+
+incdir_postgres_server `pg_config --includedir-server || true`.chomp
+have_header "libpq-fe.h"
+incdir_postgres        `pg_config --pkgincludedir     || true`.chomp
+have_header "postgres.h"
+
+
+libdir_dummy "/path/to/dummy/lib"
+enable_dummy
+have_library "dummy", :dummy  # check only if dummy enabled
+
+
+# vim:set ft=ruby :

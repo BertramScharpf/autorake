@@ -1,0 +1,474 @@
+#!/usr/bin/env ruby
+
+#
+#  autorake  --  Configure Installation
+#
+
+require "rake/autorake"
+
+require "getoptlong"
+
+
+module Rake
+
+  class ConfigCompile
+
+    include Configure
+
+    class Done < Exception ; end
+
+    VERSION = "1.0"
+
+    LEGAL = <<-EOT
+Autorake #{VERSION}
+
+(C) 2009 Bertram Scharpf
+Licence: BSD
+
+Bertram Scharpf <software@bertram-scharpf.de>
+    EOT
+
+    OPTIONS = %Q$
+--destroot    ROOT=#{Configure::DESTDIR} \
+                       new root for installed files         @destroot=
+--host        ARCH     cross-compile architecture           @arch[:host]=
+--build       ARCH     building architecture                @arch[:build]=
+
+--prefix      PREFIX   prefix for architecture-independent files \
+                                                            @dirs[:prefix]=
+--exec-prefix EPREFIX  prefix for architecture-dependent files \
+                                                            @dirs[:eprefix]=
+--bindir      DIR      arch-dep user executables            @dirs[:bin]=
+--sbindir     DIR      arch-dep system admin executables    @dirs[:sbin]=
+--libdir      DIR      arch-dep libraries                   @dirs[:lib]=
+--includedir  DIR      arch-indep include files             @dirs[:include]=
+--datadir     DIR      arch-indep data (share)              @dirs[:data]=
+--docdir      DIR      documentation                        @dirs[:doc]=
+--mandir      DIR      arch-indep man pages                 @dirs[:man]=
+--infodir     DIR      arch-indep info pages                @dirs[:info]=
+--sysconfdir  DIR      arch-indep configuration files       @dirs[:sysconf]=
+--vardir      DIR      arch-indep implementation data       @dirs[:var]=
+--localstatedir DIR    arch-indep runtime data              @dirs[:localstate]=
+
+--shebang     PATH=`which ruby` \
+                       executable for shebang lines         @shebang=
+
+-o --outfile  NAME=#{Configure::CONFIG_FILE} \                               
+                       specify output file                  @outfile=
+-h --help              display this help                    @help=true
+-V --version           display version information          @version=true
+-v --verbose           more output                          @verbose=true
+-q --quiet --silent    no output                            @verbose=false
+-n --no-act --dry-run  install commands will not be executed \
+                                                            @noact=true
+-j            NUM      ignored (compatibility with make)    @jobs=
+--                     stop processing options              @stop=true
+    $.scan(
+      /^\s*
+        ((?:(?:-[a-zA-Z0-9]|--[a-zA-Z0-9-]+)\s+)+)
+        (?:(?:([A-Z_]+)(?:=((?:(['"`]).*\4)|\S+))?)\s+)?
+        (.*?)\s*
+        (@.*?)\s*
+      $/x
+    ).map { |opts,arg,default,quote,desc,var|
+      [opts.split, arg, default, desc, var.freeze]
+    }
+
+    attr_reader :destroot, :arch, :dirs, :env
+    attr_reader :params, :incdirs, :libdirs
+
+    attr_reader :verbose
+
+    def initialize
+      @destroot, @arch, @dirs, @env, = nil, {}, {}, []
+      @params, @incdirs, @libdirs = {}, {}, {}
+    end
+
+    def save_config file = nil
+      parms = yield
+      @dirs[ :prefix    ] ||= "/usr/local"
+      @dirs[ :eprefix   ] ||= @dirs[ :prefix]
+      @dirs[ :bin       ] ||= File.join @dirs[ :eprefix], "bin"
+      @dirs[ :sbin      ] ||= File.join @dirs[ :eprefix], "sbin"
+      @dirs[ :lib       ] ||= File.join @dirs[ :eprefix], "lib"
+      @dirs[ :include   ] ||= File.join @dirs[ :prefix ], "include"
+      @dirs[ :data      ] ||= File.join @dirs[ :prefix ], "share"
+      @dirs[ :doc       ] ||= File.join @dirs[ :data   ], "doc"
+      @dirs[ :man       ] ||= File.join @dirs[ :data   ], "man"
+      @dirs[ :info      ] ||= File.join @dirs[ :data   ], "info"
+      @dirs[ :sysconf   ] ||= File.join "",               "etc"
+      @dirs[ :var       ] ||= File.join "",               "var"
+      @dirs[ :localstate] ||= File.join @dirs[ :var    ], "lib"
+      @arch[ :host] ||= @arch[ :build] if @arch[ :build]
+      return unless parms
+      parms.finish
+
+      file ||= CONFIG_FILE
+      File.open file, "w" do |f|
+        f.print [ @destroot, @arch, @dirs, @env,
+                  @params, @incdirs, @libdirs].to_yaml
+      end
+    end
+
+    def run
+      save_config @outfile do
+        parms = Parameters.new self
+        if File.exists? $*.first.to_s then
+          parms.read $*.shift
+        end
+        process_options
+        process_args
+        parms unless @noact
+      end
+      if @jobs then
+        puts "Warning: ignoring max-jobs option (#@jobs)."
+      end
+      if @verbose then
+        output
+      end
+    rescue Done
+      $*.clear
+    end
+
+    def puts_pair k, v
+      puts "#{k} = #{v}"
+    end
+    private :puts_pair
+
+    def output
+      if @destroot and not @destroot.empty? then
+        puts_pair :destroot, @destroot
+        puts
+      end
+      unless @arch.empty? then
+        puts "arch:"
+        a = @arch.sort_by { |k,v|
+          case k
+            when :host  then "0"
+            when :build then "1"
+            else "9#{k}"
+          end
+        }
+        a.each { |k,v| puts_pair k, v }
+        puts
+      end
+      puts "dirs:"
+      d = @dirs.sort_by { |k,v|
+        case k
+          when :prefix  then "0"
+          when :eprefix then "1"
+          else "9#{k}"
+        end
+      }
+      d.each { |k,v| puts_pair k, v }
+      unless @env.empty? then
+        puts
+        puts "env:"
+        @env.each { |k,v| puts_pair k, v }
+      end
+    end
+
+    def process_options
+      begin
+        gol = OPTIONS.map { |opts,arg,default,desc,|
+          a = if not arg then
+            GetoptLong::NO_ARGUMENT
+          elsif not default then
+            GetoptLong::REQUIRED_ARGUMENT
+          else
+            GetoptLong::OPTIONAL_ARGUMENT
+          end
+          opts + [ a]
+        }
+        opts = GetoptLong.new *gol
+        opts.each do |opt, arg|
+          v, a, d = OPTIONS.each { |opts,argname,default,desc,var|
+            break [var,argname,default] if opts.first == opt
+          }
+          if a then
+            v += " " + (arg.empty? ? d : arg).inspect
+          end
+          instance_eval v
+          opts.terminate if @stop
+          if @help    then help    ; raise Done ; end
+          if @version then version ; raise Done ; end
+        end
+      rescue GetoptLong::InvalidOption
+        # "unrecognized option: #{...}" has been said by `GetoptLong'.
+        raise ""
+      end
+    end
+
+    def process_args
+      @env = {}
+      $*.each { |a|
+        if a =~ /^(\w+?)=(.*)/ then
+          @env[ $1] = $2
+        else
+          puts "Warning. Useless argument: #{a}"
+        end
+      }
+    end
+
+    def help
+      puts <<-EOT
+Syntax: ruby #$0 [options]
+
+Options:
+
+    EOT
+      maxlen = 0
+      options_text = OPTIONS.map { |opts,arg,default,desc,|
+        o = opts.join ","
+        o += " " + arg.to_s unless arg.nil?
+        l = o.length
+        maxlen = l if l > maxlen
+        d = desc
+        d += " [#{default}]" unless default.nil?
+        [o, l, d]
+      }.map { |o,l,d| "  " + o + " "*(maxlen-l+2) + d + $/ }
+      puts options_text
+    end
+
+    def version
+      puts LEGAL
+    end
+
+  end
+
+  class Parameters
+
+    class Check
+      attr_reader :param
+      def initialize param, *deps, &block
+        @param = param.to_sym
+        @deps = deps.flatten
+        @block = block
+      end
+      def dep_find
+        @deps.find { |d| yield d }
+      end
+      def call
+        @block.call
+      end
+    end
+
+    def initialize config
+      @config = config
+      @checks = []
+    end
+
+    def read filename
+      File.open filename do |f| instance_eval f.read end
+    end
+
+    def finish
+      @checks.each { |c|
+        d = c.dep_find { |p| not @config.params[ p] }
+        d or @config.params[ c.param] = c.call
+      }
+    end
+
+    private
+
+    def method_missing sym, *args, &block
+      case sym.to_s
+        when /^incdir_/      then incdir      $', *args, &block
+        when /^libdir_/      then libdir      $', *args, &block
+        when /^with_/        then with        $', *args, &block
+        when /^enable_/      then enable      $', *args, &block
+        when /^disable_/     then disable     $', *args, &block
+        when /^check_/       then check       $', *args, &block
+        else raise NoMethodError, "Undefined parameter definition: #{sym}."
+      end
+    end
+
+    def incdir param, arg, desc = nil
+      desc ||= param
+      p = dash param
+      ConfigCompile::OPTIONS.push [ ["--incdir-#{p}"], :DIR, arg, desc,
+                    "@incdirs[:#{param}]="]
+      @config.incdirs[ param.intern] = arg
+    end
+
+    def libdir param, arg, desc = nil
+      desc ||= param
+      p = dash param
+      ConfigCompile::OPTIONS.push [ ["--libdir-#{p}"], :DIR, arg, desc,
+                    "@libdirs[:#{param}]="]
+      @config.libdirs[ param.intern] = arg
+    end
+
+    def with param, arg, desc = nil
+      desc ||= param
+      p = dash param
+      ConfigCompile::OPTIONS.push [ ["--with-#{p}"], :PARAM, arg, desc,
+                    "@params[:#{param}]="]
+      @config.params[ param.intern] = arg.to_s
+    end
+
+    def enable param, desc = nil
+      desc ||= param
+      p = dash param
+      ConfigCompile::OPTIONS.push [ ["--enable-#{p}"],  nil, nil,
+                    "#{desc} [default]", "@params[:#{param}]=true"]
+      ConfigCompile::OPTIONS.push [ ["--disable-#{p}"], nil, nil,
+                    desc,                "@params[:#{param}]=false"]
+      @config.params[ param.intern] = true
+    end
+
+    def disable param, desc = nil
+      desc ||= param
+      p = dash param
+      ConfigCompile::OPTIONS.push [ ["--enable-#{p}"],  nil, nil,
+                    desc,                "@params[:#{param}]=true"]
+      ConfigCompile::OPTIONS.push [ ["--disable-#{p}"], nil, nil,
+                    "#{desc} [default]", "@params[:#{param}]=false"]
+      @config.params[ param.intern] = false
+    end
+
+    def check param, &block
+      c = Check.new :"check_#{param}" do @config.instance_eval &block end
+      @checks.push c
+    end
+
+    def have_library library, *deps
+      param = library.gsub %r#[/.-]#, "_"
+      c = Check.new :"have_library_#{param}", *deps do
+        print "Checking for library #{library} ... "
+        r = link param, library
+        puts r ? "yes" : "no"
+        r or raise "Library missing: #{library}."
+        true
+      end
+      @checks.push c
+    end
+
+    def have_header header
+      param = header.gsub %r#[/.-]#, "_"
+      c = Check.new :"have_header_#{param}" do
+        print "Checking for header #{header} ... "
+        source = <<-SRC
+#include <#{header}>
+        SRC
+        r = compile param, source, true
+        puts r ? "yes" : "no"
+        r
+      end
+      @checks.push c
+    end
+
+    def have_func func, *includes
+      c = Check.new :"have_func_#{func}" do
+        print "Checking for function #{func} ... "
+        source = ""
+        includes.each { |i|
+          Symbol === i and i = @config.params[ i]
+          source << <<-SRC
+#include <#{i}>
+          SRC
+        }
+        source << <<-SRC
+void dummy( void)
+{
+  void (*f)( void) = (void (*)( void)) #{func};
+}
+        SRC
+        r = compile func, source
+        puts r ? "yes" : "no"
+        r
+      end
+      @checks.push c
+    end
+
+    def macro_defined? macro, *includes
+      c = Check.new :"defined_#{macro}" do
+        print "Checking for macro #{macro} ... "
+        source = ""
+        includes.each { |i|
+          Symbol === i and i = @config.params[ i]
+          source << <<-SRC
+#include <#{i}>
+          SRC
+        }
+        source << <<-SRC
+#ifndef #{macro}
+#error not defined
+#endif
+        SRC
+        r = compile macro, source
+        puts r ? "yes" : "no"
+        r
+      end
+      @checks.push c
+    end
+
+    private
+
+    def dash str
+      str.gsub "_", "-"
+    end
+
+    def compile name, source, only_pp = nil
+      filename = "test-#{name}.c"
+      objname  = "test-#{name}.o" if block_given?
+      File.open filename, "w" do |c| c.puts source end
+      begin
+        cmd = [ "cc"]
+        cmd.push "-E" if only_pp
+        cmd.push "-c", filename, "-o", objname||"/dev/null"
+        cmd.push "-I#{@config.dirs[ :include]}"
+        cmd.concat @config.incdirs.values.map { |i| "-I#{i}" }
+        @config.verbose and cmd.each { |c| print c, " " }
+        Process.waitpid fork {
+          $stderr.reopen "/dev/null"
+          exec *cmd
+        }
+        if objname then
+          yield objname
+        else
+          $?.success?
+        end
+      ensure
+        File.delete filename
+        File.delete objname if objname
+      end
+    end
+
+    def link name, library
+      source = "int main( int argc, char *argv[]) { return 0; }" 
+      compile name, source do |objname|
+        cmd = [ "cc"]
+        cmd.push objname, "-o", "/dev/null"
+        cmd.push "-Wl,-L#{@config.dirs[ :lib]}"
+        cmd.concat @config.libdirs.values.map { |i| "-Wl,-L#{i}" }
+        cmd.push "-Wl,-l#{library}"
+        @config.verbose and cmd.each { |c| print c, " " }
+        Process.waitpid fork {
+          $stderr.reopen "/dev/null"
+          exec *cmd
+        }
+        $?.success?
+      end
+    end
+
+  end
+
+
+  class ConfigCompile
+    unless @dont_run then
+      begin
+        new.run
+      rescue
+        $stderr.puts $!
+        $stderr.puts "Say `--help'."
+        exit 99
+      end
+    end
+
+  end
+
+end
+
+
+# vim: set ft=ruby :
