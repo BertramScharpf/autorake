@@ -471,9 +471,12 @@ void dummy( void)
 
   end
 
+  class ConfigCompile
+    @dont_run or new.run
+  end
+
 end
 
-Rake::ConfigCompile.new.run
 
 
 # vim: set ft=ruby :
