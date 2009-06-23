@@ -44,6 +44,7 @@ with_foo "Foo"
 have_library "ssl"
 
 
+libdir_postgresql `pg_config --libdir || true`.chomp
 enable_postgresql
 have_library "pq", :postgresql # check only if postgresql enabled
 
