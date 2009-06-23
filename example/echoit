@@ -1,0 +1,15 @@
+#!/usr/local/bin/ruby
+
+#
+#  echoit  --  Echo strings from imput
+#
+
+require "notempty"
+
+begin
+  print "> "
+  l = gets or break
+  l.chomp!
+  puts l.notempty? || "(no input)"
+end until l =~ /^(x|exit|quit|bye)/
+

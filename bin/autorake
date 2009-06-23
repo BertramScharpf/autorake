@@ -128,6 +128,14 @@ Bertram Scharpf <software@bertram-scharpf.de>
       end
     rescue Done
       $*.clear
+    rescue
+      puts
+      puts $!
+      @verbose and $@.each { |b|
+        puts "\t" + b
+      }
+      puts "Say `--help'."
+      exit 1
     end
 
     def puts_pair k, v
@@ -409,9 +417,18 @@ void dummy( void)
       str.gsub "_", "-"
     end
 
+    def tmp_filename name
+      tmp = "tmp-0001"
+      loop do
+        n = "#{tmp}-#{name}.c"
+        File.exists? n or break n
+        tmp.succ!
+      end
+    end
+
     def compile name, source, only_pp = nil
-      filename = "test-#{name}.c"
-      objname  = "test-#{name}.o" if block_given?
+      filename = tmp_filename name
+      objname  = filename.sub /(\.\w+)?\z/, ".o" if block_given?
       File.open filename, "w" do |c| c.puts source end
       begin
         cmd = [ "cc"]
@@ -430,8 +447,8 @@ void dummy( void)
           $?.success?
         end
       ensure
-        File.delete filename
         File.delete objname if objname
+        File.delete filename
       end
     end
 
@@ -454,21 +471,9 @@ void dummy( void)
 
   end
 
-
-  class ConfigCompile
-    unless @dont_run then
-      begin
-        new.run
-      rescue
-        $stderr.puts $!
-        $stderr.puts "Say `--help'."
-        exit 99
-      end
-    end
-
-  end
-
 end
+
+Rake::ConfigCompile.new.run
 
 
 # vim: set ft=ruby :

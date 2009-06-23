@@ -38,3 +38,40 @@ task :clean do
   FileList[ "*.o", "*.so"].each { |f| rm_f f }
 end
 
+
+
+# Here are some installers. They may be called by
+#
+#   $ rake install
+#
+# This is in case your project cannot be provided as a gem.
+#
+# For testing purposes you may call
+#
+#   $ ./mkrf_conf --destroot /tmp/testroot --disable-dummy
+#   $ rake
+#   $ rake install
+#   $ find /tm/testroot -type f
+#
+# You can find all install directories in the file ".configure".
+# See "./mkrf_conf --help" for the configuration facilities.
+#
+
+ruby_version = RUBY_VERSION.slice %r/\A\d+\.\d+/
+
+%w(
+  notempty.so
+).map { |e|
+  installer e, [ :lib, "ruby", "site_ruby", ruby_version]
+}   
+    
+%w(
+  echoit
+).map { |e|
+  installer e, [ :bin], :shebang => true
+}
+
+task :install do
+  puts "Installation done."
+end
+
