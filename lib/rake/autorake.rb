@@ -106,18 +106,30 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
 
     def cc o, c, *args
       e = ENV[ "CFLAGS"]
-      cmd = [ "cc", macro_defs, opt_incdirs, (e.split if e), args,
-              "-o", o, "-c", c].flatten.compact
-      sh *cmd
+      cc_cmd macro_defs, opt_incdirs, (e.split if e), args, "-o", o, "-c", c
     end
 
     def ld x, os, *args
       e = ENV[ "LDFLAGS"]
-      cmd = [ "cc", opt_libdirs, opt_libs,
-              (e.split if e), args,
-              Config::CONFIG[ "LIBRUBYARG"].split,
-              "-o", x, os].flatten.compact
-      sh *cmd
+      cc_cmd opt_libdirs, opt_libs, (e.split if e), args,
+              Config::CONFIG[ "LIBRUBYARG"].split, "-o", x, os
+    end
+
+    def cc_cmd *args
+      args.flatten!
+      args.compact!
+      quiet = args.delete :quiet
+      args.unshift ENV[ "CC"] || "cc"
+      if @verbose then
+        l = args.map { |a| a =~ / / ? a.inspect : a }.join " "
+        puts l
+      end
+      Process.waitpid fork {
+        $stderr.reopen "/dev/null" if quiet
+        exec *args
+      }
+      yield if block_given? and $?.success?
+      $?.success?
     end
 
     def undirectory dir
@@ -180,11 +192,11 @@ EOT
       nowrite or File.open src do |f|
         create_file dest do |d|
           if sep then
-            puts "Creating '#{dest}' through filter." if verbose
+            puts "Creating '#{dest}' through filter." if @verbose
             f = Filter.new f, sep, self
           end
           if shb then
-            puts "Creating '#{dest}' with appropriate shebang." if verbose
+            puts "Creating '#{dest}' with appropriate shebang." if @verbose
             f = Shebang.new f, d
           end
           f

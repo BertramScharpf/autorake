@@ -16,6 +16,7 @@ module Rake
     include Configure
 
     class Done < Exception ; end
+    class Failed < StandardError ; end
 
     VERSION = "1.0"
 
@@ -53,8 +54,9 @@ Bertram Scharpf <software@bertram-scharpf.de>
 --shebang     PATH=`which ruby` \
                        executable for shebang lines         @shebang=
 
--o --outfile  NAME=#{Configure::CONFIG_FILE} \                               
+-o --outfile  NAME=#{Configure::CONFIG_FILE} \
                        specify output file                  @outfile=
+-c --clean             delete config file resp. -o outfile  @clean=true
 -h --help              display this help                    @help=true
 -V --version           display version information          @version=true
 -v --verbose           more output                          @verbose=true
@@ -84,8 +86,43 @@ Bertram Scharpf <software@bertram-scharpf.de>
       @params, @incdirs, @libdirs = {}, {}, {}
     end
 
-    def save_config file = nil
-      parms = yield
+    def run
+      @outfile ||= CONFIG_FILE
+      parms = Parameters.new self
+      if File.exists? $*.first.to_s then
+        parms.read $*.shift
+      end
+      process_options
+      process_args
+      unless @clean then
+        @jobs and puts "Warning: ignoring max-jobs option (#@jobs)."
+        set_dirs
+        parms.finish
+        save_config unless @noact
+        @verbose and output
+      else
+        puts "Deleting `#@outfile'."
+        File.unlink @outfile
+      end
+    rescue Done
+      $*.clear
+    rescue Failed
+      puts $!
+      puts "No build configuration was generated."
+      exit 2
+    rescue
+      puts
+      puts $!
+      @verbose and $@.each { |b|
+        puts "\t" + b
+      }
+      puts "Say `--help'."
+      exit 1
+    end
+
+    private
+
+    def set_dirs
       @dirs[ :prefix    ] ||= "/usr/local"
       @dirs[ :eprefix   ] ||= @dirs[ :prefix]
       @dirs[ :bin       ] ||= File.join @dirs[ :eprefix], "bin"
@@ -100,67 +137,39 @@ Bertram Scharpf <software@bertram-scharpf.de>
       @dirs[ :var       ] ||= File.join "",               "var"
       @dirs[ :localstate] ||= File.join @dirs[ :var    ], "lib"
       @arch[ :host] ||= @arch[ :build] if @arch[ :build]
-      return unless parms
-      parms.finish
+    end
 
-      file ||= CONFIG_FILE
-      File.open file, "w" do |f|
+    def save_config
+      File.open @outfile, "w" do |f|
         f.print [ @destroot, @arch, @dirs, @env,
                   @params, @incdirs, @libdirs].to_yaml
       end
     end
 
-    def run
-      save_config @outfile do
-        parms = Parameters.new self
-        if File.exists? $*.first.to_s then
-          parms.read $*.shift
-        end
-        process_options
-        process_args
-        parms unless @noact
-      end
-      if @jobs then
-        puts "Warning: ignoring max-jobs option (#@jobs)."
-      end
-      if @verbose then
-        output
-      end
-    rescue Done
-      $*.clear
-    rescue
-      puts
-      puts $!
-      @verbose and $@.each { |b|
-        puts "\t" + b
-      }
-      puts "Say `--help'."
-      exit 1
-    end
-
     def puts_pair k, v
       puts "#{k} = #{v}"
     end
-    private :puts_pair
+
+    def puts_table h, t
+      puts "#{h}:"
+      t.each { |k,v|
+        puts "  #{k} = #{v}"
+      }
+      puts
+    end
 
     def output
-      if @destroot and not @destroot.empty? then
-        puts_pair :destroot, @destroot
-        puts
-      end
-      unless @arch.empty? then
-        puts "arch:"
-        a = @arch.sort_by { |k,v|
-          case k
-            when :host  then "0"
-            when :build then "1"
-            else "9#{k}"
-          end
-        }
-        a.each { |k,v| puts_pair k, v }
-        puts
-      end
-      puts "dirs:"
+      puts
+      puts_pair :destroot, @destroot
+      puts
+      a = @arch.sort_by { |k,v|
+        case k
+          when :host  then "0"
+          when :build then "1"
+          else "9#{k}"
+        end
+      }
+      puts_table "arch", a
       d = @dirs.sort_by { |k,v|
         case k
           when :prefix  then "0"
@@ -168,12 +177,11 @@ Bertram Scharpf <software@bertram-scharpf.de>
           else "9#{k}"
         end
       }
-      d.each { |k,v| puts_pair k, v }
-      unless @env.empty? then
-        puts
-        puts "env:"
-        @env.each { |k,v| puts_pair k, v }
-      end
+      puts_table "dirs", d
+      puts_table "env", @env
+      puts_table "incdirs", @incdirs
+      puts_table "libdirs", @libdirs
+      puts_table "params", @params
     end
 
     def process_options
@@ -346,7 +354,7 @@ Options:
         print "Checking for library #{library} ... "
         r = link param, library
         puts r ? "yes" : "no"
-        r or raise "Library missing: #{library}."
+        r or raise ConfigCompile::Failed, "Library missing: #{library}."
         true
       end
       @checks.push c
@@ -431,20 +439,11 @@ void dummy( void)
       objname  = filename.sub /(\.\w+)?\z/, ".o" if block_given?
       File.open filename, "w" do |c| c.puts source end
       begin
-        cmd = [ "cc"]
-        cmd.push "-E" if only_pp
-        cmd.push "-c", filename, "-o", objname||"/dev/null"
-        cmd.push "-I#{@config.dirs[ :include]}"
-        cmd.concat @config.incdirs.values.map { |i| "-I#{i}" }
-        @config.verbose and cmd.each { |c| print c, " " }
-        Process.waitpid fork {
-          $stderr.reopen "/dev/null"
-          exec *cmd
-        }
-        if objname then
-          yield objname
-        else
-          $?.success?
+        @config.cc_cmd :quiet, ("-E" if only_pp),
+                "-c", filename, "-o", objname||"/dev/null",
+                "-I#{@config.dirs[ :include]}",
+                (@config.incdirs.values.map { |i| "-I#{i}" }) do
+          yield objname if objname
         end
       ensure
         File.delete objname if objname
@@ -453,19 +452,12 @@ void dummy( void)
     end
 
     def link name, library
-      source = "int main( int argc, char *argv[]) { return 0; }" 
+      source = "int main( int argc, char *argv[]) { return 0; }"
       compile name, source do |objname|
-        cmd = [ "cc"]
-        cmd.push objname, "-o", "/dev/null"
-        cmd.push "-Wl,-L#{@config.dirs[ :lib]}"
-        cmd.concat @config.libdirs.values.map { |i| "-Wl,-L#{i}" }
-        cmd.push "-Wl,-l#{library}"
-        @config.verbose and cmd.each { |c| print c, " " }
-        Process.waitpid fork {
-          $stderr.reopen "/dev/null"
-          exec *cmd
-        }
-        $?.success?
+        @config.cc_cmd :quiet, objname, "-o", "/dev/null",
+                "-Wl,-L#{@config.dirs[ :lib]}",
+                @config.libdirs.values.map { |i| "-Wl,-L#{i}" },
+                "-Wl,-l#{library}"
       end
     end
 
