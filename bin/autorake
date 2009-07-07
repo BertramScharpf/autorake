@@ -197,6 +197,8 @@ Bertram Scharpf <software@bertram-scharpf.de>
           opts + [ a]
         }
         opts = GetoptLong.new *gol
+        opts.ordering = GetoptLong::REQUIRE_ORDER
+          # Gentoo ebuilds call mkrf_conf with the whole gem install line.
         opts.each do |opt, arg|
           v, a, d = OPTIONS.each { |opts,argname,default,desc,var|
             break [var,argname,default] if opts.first == opt
