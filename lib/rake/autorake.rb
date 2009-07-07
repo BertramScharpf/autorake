@@ -41,6 +41,7 @@ module Rake
     attr_reader :destroot, :arch, :dirs, :env
 
     def load_config file = nil
+      @verbose = RakeFileUtils.verbose_flag
       begin
         file ||= CONFIG_FILE
         @destroot, @arch, @dirs, @env,
