@@ -48,9 +48,9 @@ libdir_postgresql `pg_config --libdir || true`.chomp
 enable_postgresql
 have_library "pq", :postgresql # check only if postgresql enabled
 
-incdir_postgres_server `pg_config --includedir-server || true`.chomp
+incdir_postgres_server `pg_config --includedir-server`.chomp
 have_header "libpq-fe.h"
-incdir_postgres        `pg_config --pkgincludedir     || true`.chomp
+incdir_postgres        `pg_config --pkgincludedir`.chomp
 have_header "postgres.h"
 
 
