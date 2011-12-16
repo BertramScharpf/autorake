@@ -18,12 +18,10 @@ module Rake
     class Done < Exception ; end
     class Failed < StandardError ; end
 
-    VERSION = "1.0"
-
     LEGAL = <<-EOT
-Autorake #{VERSION}
+Autorake #{Configure::VERSION}
 
-(C) 2009 Bertram Scharpf
+(C) 2009-2011 Bertram Scharpf
 Licence: BSD
 
 Bertram Scharpf <software@bertram-scharpf.de>
@@ -82,7 +80,7 @@ Bertram Scharpf <software@bertram-scharpf.de>
     attr_reader :verbose
 
     def initialize
-      @destroot, @arch, @dirs, @env, = nil, {}, {}, []
+      @destroot, @arch, @dirs, @env = nil, {}, {}, []
       @params, @incdirs, @libdirs = {}, {}, {}
     end
 
@@ -465,12 +463,9 @@ void dummy( void)
 
   end
 
-  class ConfigCompile
-    @dont_run or new.run
-  end
+
+  ConfigCompile.new.run
 
 end
-
-
 
 # vim: set ft=ruby :

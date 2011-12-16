@@ -4,19 +4,13 @@
 
 require "rubygems"
 
+$:.unshift "./lib"
+require "rake/autorake"
 
-$:.unshift "lib"
-
-module ::Rake
-  class ConfigCompile ; @dont_run = true ; end
-end
-Kernel.load "bin/autorake"
-
-
-SPEC = Gem::Specification.new do |s|
+Gem::Specification.new do |s|
   s.name              = "autorake"
   s.rubyforge_project = "autorake"
-  s.version           = Rake::ConfigCompile::VERSION
+  s.version           = Rake::Configure::VERSION
   s.summary           = "Configure project before Rake build."
   s.description       = <<EOT
 This script allows you to write pretty mkrf_conf scripts
@@ -25,8 +19,10 @@ EOT
   s.authors           = "Bertram Scharpf"
   s.email             = "software@bertram-scharpf.de"
   s.homepage          = "http://www.bertram-scharpf.de"
+
   s.requirements      = "Rake"
-  s.add_dependency      "rake", ">=0.8"
+  s.add_dependency      "rake", ">=0.8.7"
+
   s.files             = %w(
                           lib/rake/autorake.rb
                           example/mkrf_conf
@@ -39,10 +35,5 @@ EOT
                           README
                           LICENSE
                         )
-end
-
-if $0 == __FILE__ then
-  b = Gem::Builder.new SPEC
-  b.build
 end
 

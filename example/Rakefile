@@ -9,9 +9,9 @@ extend Rake::Configure
 
 
 puts "Features enabled:"
-puts "Some  - #{params[ :some_feature]}"
-puts "Other - #{params[ :other_feature]}"
-puts "Foo   - #{params[ :foo]}"
+puts "Some  - #{p_some_feature}"
+puts "Other - #{other_feature?}"
+puts "Foo   - #{foo}"
 # Use these in if-like statements.
 
 

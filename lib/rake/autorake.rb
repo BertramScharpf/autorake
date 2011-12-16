@@ -4,17 +4,38 @@
 #  autorake.rb  --  Installation Configuration Tool
 #
 
-require "fileutils"
+require "rake"
 require "yaml"
+
+require "rbconfig"
+
 
 module Rake
 
   module Configure
 
+    VERSION = "1.1"
+
     class <<self
       def extended obj
         obj.load_config
       end
+    end
+
+    def method_missing sym, *args
+      p = @params[ sym]
+      return p if String === p
+      s = sym.to_s
+      if s =~ /\?\z/ then
+        y = $`.to_sym
+        p = @params[ y]
+        return p if [true,false].include? p
+      end
+      if s =~ /\Ap_/ then
+        y = $'.to_sym
+        return @params[ y] if @params.has_key? y
+      end
+      super
     end
 
 
@@ -113,7 +134,7 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
     def ld x, os, *args
       e = ENV[ "LDFLAGS"]
       cc_cmd opt_libdirs, opt_libs, (e.split if e), args,
-              Config::CONFIG[ "LIBRUBYARG"].split, "-o", x, os
+              RbConfig::CONFIG[ "LIBRUBYARG"].split, "-o", x, os
     end
 
     def cc_cmd *args
@@ -278,4 +299,6 @@ EOT
   end
 
 end
+
+module Rake ; @application ; end and extend Rake::Configure
 
