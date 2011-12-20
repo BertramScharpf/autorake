@@ -193,8 +193,7 @@ EOT
           end
           task :uninstall do rm dest end
         end
-        mode = params[ :mode]
-        user, group = [:user, :group].map { |x| params[ x] }
+        mode, user, group = [ :mode, :user, :group].map { |x| params[ x] }
         task :install do
           chmod mode, dest if mode
           chown user, group, dest if user or group
