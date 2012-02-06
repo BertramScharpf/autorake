@@ -164,7 +164,7 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
       end
     end
 
-    def installer files, destdir, *params
+    def installer files, *destdir
       if @warn then
         puts <<EOT
 Warning: install/uninstalling targets not built due to missing configuration.
@@ -172,9 +172,15 @@ EOT
         @warn = false
       end
       return unless @warn.nil?
-
+      params = []
+      until destdir.empty? do
+        case destdir.last
+          when Hash then params.unshift destdir.pop
+          when nil  then destdir.pop
+          else           break
+        end
+      end
       params = params.inject( {}) { |h,p| h.update p if p ; h }
-
       dir = destination *destdir
       directory dir
       task :install => dir
