@@ -305,5 +305,6 @@ EOT
 
 end
 
+# When we're loaded from a Rakefile, include the extensions to it.
 module Rake ; @application ; end and extend Rake::Configure
 
