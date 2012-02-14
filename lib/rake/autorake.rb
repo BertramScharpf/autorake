@@ -39,20 +39,22 @@ module Rake
     end
 
 
-    def residence sym, *args
-      a = File.join *args
-      File.expand_path a, @dirs[ sym]
+    def residence *args
+      args.flatten!
+      r = ""
+      args.each { |a|
+        d = case a
+          when Symbol then @dirs[ a]
+          else             a
+        end
+        r = File.join r, d
+        break if r[ 0, 1] == File::SEPARATOR
+      }
+      r
     end
 
     def destination *args
-      args = args.flatten
-      case args.first
-        when Symbol then
-          sym = args.shift
-          File.join @destroot, @dirs[ sym], *args
-        else
-          File.join @destroot, *args
-      end
+      residence @destroot, *args
     end
 
     AUTO_CONFIGURE, MKRF_CONF = "configure", "mkrf_conf"
@@ -185,7 +187,7 @@ EOT
       directory dir
       task :install => dir
       files.each { |file|
-        dest = File.join dir, File.basename( file)
+        dest = File.join dir, (File.basename file)
 
         if params[ :dir] || File.directory?( file) then
           task :install   do cp_dir file, dest end
