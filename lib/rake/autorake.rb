@@ -186,11 +186,13 @@ EOT
       dir = destination *destdir
       directory dir
       task :install => dir
+      Array === files or files = [ files]
       files.each { |file|
         dest = File.join dir, (File.basename file)
-
-        if params[ :dir] || File.directory?( file) then
-          task :install   do cp_dir file, dest end
+        if params[ :dir] or not (File.file? file) then
+          task :install   do
+            mkdir dest unless File.directory? dest
+          end
           task :uninstall do undirectory dest end
         else
           shb, sep = params[ :shebang], params[ :filter]
@@ -210,10 +212,6 @@ EOT
       task :uninstall do
         undirectory dir
       end
-    end
-
-    def cp_dir src, dest
-      mkdir dest unless File.directory? dest
     end
 
     def cp_filtered src, dest, shb, sep
