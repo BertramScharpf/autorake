@@ -41,13 +41,14 @@ module Rake
 
     def residence *args
       args.flatten!
+      args.reverse!
       r = ""
       args.each { |a|
         d = case a
           when Symbol then @dirs[ a]
           else             a
         end
-        r = File.join r, d
+        r = File.join d, r
         break if r[ 0, 1] == File::SEPARATOR
       }
       r
