@@ -190,7 +190,7 @@ EOT
       Array === files or files = [ files]
       files.each { |file|
         dest = File.join dir, (File.basename file)
-        if params[ :dir] or not (File.file? file) then
+        if params[ :dir] or (File.directory? file) then
           task :install   do
             mkdir dest unless File.directory? dest
           end
