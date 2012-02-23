@@ -187,7 +187,7 @@ EOT
       dir = destination *destdir
       directory dir
       task :install => dir
-      Array === files or files = [ files]
+      files.respond_to? :each or files = [ files]
       files.each { |file|
         dest = File.join dir, (File.basename file)
         if params[ :dir] or (File.directory? file) then
