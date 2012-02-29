@@ -9,7 +9,6 @@ require "yaml"
 
 require "rbconfig"
 
-
 module Rake
 
   module Configure
@@ -55,7 +54,8 @@ module Rake
     end
 
     def destination *args
-      residence @destroot, *args
+      r = residence *args
+      File.join @destroot, r
     end
 
     AUTO_CONFIGURE, MKRF_CONF = "configure", "mkrf_conf"
@@ -68,12 +68,9 @@ module Rake
       @verbose = RakeFileUtils.verbose_flag
       begin
         file ||= CONFIG_FILE
-        @destroot, @arch, @dirs, @env,
-          @params, @incdirs, @libdirs = YAML.load_file file
-        @destroot ||= ENV[ DESTDIR[ /\$(\w+)/, 1]] || ""
-        @env.each { |k,v|
-          ENV[ k] ||= v
-        }
+        @arch, @dirs, @env, @params, @incdirs, @libdirs = YAML.load_file file
+        @env.each { |k,v| ENV[ k] ||= v }
+        @destroot = ENV[ DESTDIR[ /\$(\w+)/, 1]] || ""
         begin
           task :distclean => :clean do
             rm_f file
@@ -161,8 +158,9 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
       if File.directory? dir and
           (Dir.entries( dir) - %w(. ..)).empty? then
         rmdir dir
-        if dir != File.basename( dir) then
-          undirectory File.dirname( dir)
+        b, d = *(File.split dir)
+        if dir != b then
+          undirectory d
         end
       end
     end
@@ -193,6 +191,7 @@ EOT
         if params[ :dir] or (File.directory? file) then
           task :install   do
             mkdir dest unless File.directory? dest
+            mkdir_p dest unless File.directory? dest
           end
           task :uninstall do undirectory dest end
         else

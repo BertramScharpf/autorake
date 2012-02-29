@@ -28,8 +28,6 @@ Bertram Scharpf <software@bertram-scharpf.de>
     EOT
 
     OPTIONS = %Q$
---destroot    ROOT=#{Configure::DESTDIR} \
-                       new root for installed files         @destroot=
 --host        ARCH     cross-compile architecture           @arch[:host]=
 --build       ARCH     building architecture                @arch[:build]=
 
@@ -74,14 +72,13 @@ Bertram Scharpf <software@bertram-scharpf.de>
       [opts.split, arg, default, desc, var.freeze]
     }
 
-    attr_reader :destroot, :arch, :dirs, :env
+    attr_reader :arch, :dirs, :env
     attr_reader :params, :incdirs, :libdirs
 
     attr_reader :verbose
 
     def initialize
-      @destroot, @arch, @dirs, @env = nil, {}, {}, []
-      @params, @incdirs, @libdirs = {}, {}, {}
+      @arch, @dirs, @env, @params, @incdirs, @libdirs = {}, {}, [], {}, {}, {}
     end
 
     def run
@@ -97,7 +94,7 @@ Bertram Scharpf <software@bertram-scharpf.de>
         set_dirs
         parms.finish
         save_config unless @noact
-        @verbose and output
+        output if @verbose
       else
         puts "Deleting `#@outfile'."
         File.unlink @outfile
@@ -139,8 +136,7 @@ Bertram Scharpf <software@bertram-scharpf.de>
 
     def save_config
       File.open @outfile, "w" do |f|
-        f.print [ @destroot, @arch, @dirs, @env,
-                  @params, @incdirs, @libdirs].to_yaml
+        f.print [ @arch, @dirs, @env, @params, @incdirs, @libdirs].to_yaml
       end
     end
 
@@ -157,8 +153,6 @@ Bertram Scharpf <software@bertram-scharpf.de>
     end
 
     def output
-      puts
-      puts_pair :destroot, @destroot
       puts
       a = @arch.sort_by { |k,v|
         case k
