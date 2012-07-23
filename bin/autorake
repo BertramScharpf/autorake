@@ -21,7 +21,7 @@ module Rake
     LEGAL = <<-EOT
 Autorake #{Configure::VERSION}
 
-(C) 2009-2011 Bertram Scharpf
+(C) 2009-2012 Bertram Scharpf
 Licence: BSD
 
 Bertram Scharpf <software@bertram-scharpf.de>
@@ -233,7 +233,7 @@ Options:
         o += " " + arg.to_s unless arg.nil?
         l = o.length
         maxlen = l if l > maxlen
-        d = desc
+        d = desc.to_s
         d += " [#{default}]" unless default.nil?
         [o, l, d]
       }.map { |o,l,d| "  " + o + " "*(maxlen-l+2) + d + $/ }
@@ -282,14 +282,11 @@ Options:
     private
 
     def method_missing sym, *args, &block
-      case sym.to_s
-        when /^incdir_/      then incdir      $', *args, &block
-        when /^libdir_/      then libdir      $', *args, &block
-        when /^with_/        then with        $', *args, &block
-        when /^enable_/      then enable      $', *args, &block
-        when /^disable_/     then disable     $', *args, &block
-        when /^check_/       then check       $', *args, &block
-        else raise NoMethodError, "Undefined parameter definition: #{sym}."
+      m, f = sym.to_s.split "_", 2
+      if f then
+        send m, f, *args, &block
+      else
+        raise NoMethodError, "Undefined parameter definition: #{m}."
       end
     end
 
@@ -315,6 +312,14 @@ Options:
       ConfigCompile::OPTIONS.push [ ["--with-#{p}"], :PARAM, arg, desc,
                     "@params[:#{param}]="]
       @config.params[ param.intern] = arg.to_s
+    end
+
+    def feature param, arg, desc = nil
+      if arg then
+        enable  param, desc
+      else
+        disable param, desc
+      end
     end
 
     def enable param, desc = nil
