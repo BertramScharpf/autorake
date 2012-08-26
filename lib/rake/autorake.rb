@@ -113,14 +113,14 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
 
     def opt_incdirs
       r = @incdirs.map { |k,v|
-        "-I#{residence :include, v}" if v.any?
+        "-I#{residence :include, v}" unless v.empty?
       }
       r.unshift "-I#{@dirs[ :include]}"
       r
     end
 
     def opt_libdirs
-      @libdirs.map { |k,v| "-Wl,-L#{v}" if v.any? }
+      @libdirs.map { |k,v| "-Wl,-L#{v}" unless v.empty? }
     end
 
     def opt_libs
