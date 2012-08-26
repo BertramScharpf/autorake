@@ -64,6 +64,10 @@ module Rake
 
     attr_reader :destroot, :arch, :dirs, :env
 
+    def init_variables
+      @arch, @dirs, @env, @params, @incdirs, @libdirs = {}, {}, [], {}, {}, {}
+    end
+
     def load_config file = nil
       @verbose = RakeFileUtils.verbose_flag
       begin
@@ -83,6 +87,7 @@ module Rake
 Missing configuraton file: `#{file}'. Run `autorake' first.
 Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
         EOT
+        init_variables
         @warn = true
       end
     end

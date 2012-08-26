@@ -78,7 +78,7 @@ Bertram Scharpf <software@bertram-scharpf.de>
     attr_reader :verbose
 
     def initialize
-      @arch, @dirs, @env, @params, @incdirs, @libdirs = {}, {}, [], {}, {}, {}
+      init_variables
     end
 
     def run
