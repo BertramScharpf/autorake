@@ -116,9 +116,8 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
           r.push RbConfig::CONFIG[ "topdir"]
         else
           h = RbConfig::CONFIG[ "rubyhdrdir"]
-          r.push h,
-            (File.join h, RbConfig::CONFIG[ "arch"]),
-            (File.join h, "ruby/backward")
+          r.push h, (File.join h, RbConfig::CONFIG[ "arch"])
+          # File.join h, "ruby/backward"
         end
       end
       @incdirs.map { |k,v|
