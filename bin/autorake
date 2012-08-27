@@ -290,6 +290,10 @@ Options:
       end
     end
 
+    def extending_ruby
+      @config.libdirs[ nil] = @config.incdirs[ nil] = true
+    end
+
     def incdir param, arg, desc = nil
       desc ||= param
       p = dash param
@@ -440,8 +444,7 @@ void dummy( void)
       begin
         @config.cc_cmd :quiet, ("-E" if only_pp),
                 "-c", filename, "-o", objname||"/dev/null",
-                "-I#{@config.dirs[ :include]}",
-                (@config.incdirs.values.map { |i| "-I#{i}" }) do
+                @config.opt_incdirs do
           yield objname if objname
         end
       ensure
@@ -454,9 +457,7 @@ void dummy( void)
       source = "int main( int argc, char *argv[]) { return 0; }"
       compile name, source do |objname|
         @config.cc_cmd :quiet, objname, "-o", "/dev/null",
-                "-Wl,-L#{@config.dirs[ :lib]}",
-                @config.libdirs.values.map { |i| "-Wl,-L#{i}" },
-                "-Wl,-l#{library}"
+                @config.opt_libdirs, "-Wl,-l#{library}"
       end
     end
 

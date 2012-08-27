@@ -1,5 +1,3 @@
-#!/usr/bin/ruby
-
 #
 #  autorake.rb  --  Installation Configuration Tool
 #
@@ -112,15 +110,39 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
     end
 
     def opt_incdirs
-      r = @incdirs.map { |k,v|
-        "-I#{residence :include, v}" unless v.empty?
+      r = [ @dirs[ :include]]
+      if @incdirs[ nil] then
+        if RUBY_VERSION < "1.9" then
+          r.push RbConfig::CONFIG[ "topdir"]
+        else
+          h = RbConfig::CONFIG[ "rubyhdrdir"]
+          r.push h,
+            (File.join h, RbConfig::CONFIG[ "arch"]),
+            (File.join h, "ruby/backward")
+        end
+      end
+      @incdirs.map { |k,v|
+        next unless k
+        next if v.empty?
+        d = residence :include, v
+        r.push d
       }
-      r.unshift "-I#{@dirs[ :include]}"
+      r.map! { |d| "-I#{d}" }
       r
     end
 
     def opt_libdirs
-      @libdirs.map { |k,v| "-Wl,-L#{v}" unless v.empty? }
+      r = [ @dirs[ :lib]]
+      @libdirs.each { |k,v|
+        next unless k
+        next if v.empty?
+        r.push v
+      }
+      r.map! { |d| "-Wl,-L#{d}" }
+      if @libdirs[ nil] then
+        r.concat RbConfig::CONFIG[ "LIBRUBYARG"].split
+      end
+      r
     end
 
     def opt_libs
@@ -138,8 +160,7 @@ Eventually it is provided as `./#{AUTO_CONFIGURE}' or `./#{MKRF_CONF}'.
 
     def ld x, os, *args
       e = ENV[ "LDFLAGS"]
-      cc_cmd opt_libdirs, opt_libs, (e.split if e), args,
-              RbConfig::CONFIG[ "LIBRUBYARG"].split, "-o", x, os
+      cc_cmd opt_libdirs, opt_libs, (e.split if e), args, "-o", x, os
     end
 
     def cc_cmd *args
