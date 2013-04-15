@@ -10,7 +10,8 @@ Autorake.configure {
 
   have_header "stdio.h"
 
-  feature :now, false
+  feature :now, false do
+  end
 
 }
 

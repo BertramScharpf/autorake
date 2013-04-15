@@ -42,10 +42,20 @@ module Autorake
       @configure.directories.each { |k,v|
         add_option %W(dir-#{k}), "set directory #{k}", v, :set_dir, k
       }
+      @configure.features.each { |k,v|
+        de, dd = "[default]", nil
+        de, dd = dd, de unless v
+        add_option %W(enable-#{k}),  "enable  #{k} #{de}", nil, :set_with, k, true
+        add_option %W(disable-#{k}), "disable #{k} #{dd}", nil, :set_with, k, false
+      }
     end
 
     def set_dir name, val
       @configure.directories[ name] = val
+    end
+
+    def set_with name, val
+      @configure.features[ name] = val
     end
 
     def dump
