@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+#
+#  mkrf_conf  --  configure Hello
+#
+
+require "autorake/mkconfig"
+
+Autorake.configure {
+
+  have_header "stdio.h"
+
+  feature :now, false
+
+}
+

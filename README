@@ -4,13 +4,12 @@ Autorake
 Author: Bertram Scharpf <software@bertram-scharpf.de>
 License: BSD
 
-This is a small extension to the original Rake by Jim Weirich.
+This project wants to be to Rake what Autocmd is to Make.
 
-Have a look at the self-explaining example directory.
-Start off with "example/mkrf_conf".
+Have a look at the self-explaining samples directory.
 
-The script mkrf_conf will build a file .configure that contains the
-whole configuration information. The Rakefile will read it in by
-extending itself with Rake::Configure. Various #defines will be
-given in autoconf style.
+The script mkrf_conf will build a file .configure that contains
+the whole configuration information. The Rakefile will read it in
+by extending itself. Various #defines will be given in autoconf
+style.
 

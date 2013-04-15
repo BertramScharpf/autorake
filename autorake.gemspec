@@ -5,32 +5,33 @@
 require "rubygems"
 
 $:.unshift "./lib"
-require "rake/autorake"
+require "autorake/version"
 
 Gem::Specification.new do |s|
-  s.name              = "autorake"
-  s.rubyforge_project = "autorake"
-  s.version           = Rake::Configure::VERSION
-  s.summary           = "Configure project before Rake build."
-  s.description       = <<EOT
-This script allows you to write pretty mkrf_conf scripts
-with autocmd-like functionality.
-EOT
-  s.authors           = "Bertram Scharpf"
-  s.email             = "software@bertram-scharpf.de"
-  s.homepage          = "http://www.bertram-scharpf.de"
+  s.name              = Autorake::NAME
+  s.rubyforge_project = "NONE"
+  s.version           = Autorake::VERSION
+  s.summary           = Autorake::SUMMARY
+  s.description       = Autorake::DESCRIPTION
+  s.license           = Autorake::LICENSE
+  s.authors           = Autorake::TEAM
+  s.email             = Autorake::AUTHOR
+  s.homepage          = Autorake::HOMEPAGE
 
   s.requirements      = "Rake"
   s.add_dependency      "rake", ">=0.8.7"
 
   s.files             = %w(
-                          lib/rake/autorake.rb
-                          example/mkrf_conf
-                          example/Rakefile
-                          example/notempty.c
-                          example/notempty.h
+                          lib/autorake.rb
+                          lib/autorake/application.rb
+                          lib/autorake/configure.rb
+                          lib/autorake/directories.rb
+                          lib/autorake/mkconfig.rb
+                          lib/autorake/version.rb
+                          samples/plainc/mkrf_conf
+                          samples/plainc/hello.c
                         )
-  s.executables       = %w(autorake)
+  s.executables       = %w()
   s.extra_rdoc_files  = %w(
                           README
                           LICENSE
