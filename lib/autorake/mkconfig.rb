@@ -9,7 +9,7 @@ module Autorake
 
   class <<self
     def configure &block
-      c = Configure.new
+      c = Definitions.new
       c.instance_eval &block
       p = MkConfig.new c
       p.run
@@ -45,8 +45,14 @@ module Autorake
       @configure.features.each { |k,v|
         de, dd = "[default]", nil
         de, dd = dd, de unless v
-        add_option %W(enable-#{k}),  "enable  #{k} #{de}", nil, :set_with, k, true
-        add_option %W(disable-#{k}), "disable #{k} #{dd}", nil, :set_with, k, false
+        add_option %W(enable-#{k}),  "enable  #{k} #{de}", nil,
+                                                        :set_feature, k, true
+        add_option %W(disable-#{k}), "disable #{k} #{dd}", nil,
+                                                        :set_feature, k, false
+      }
+      @configure.parameters.each { |k,v|
+        add_option %W(with-#{k}), "define a parameter and C macro #{k}", v,
+                                                                :set_parm, k
       }
       @configure.incpath.each { |k,v|
         add_option %W(incdir-#{k}), "include directory #{k}", v, :set_incdir, k
@@ -60,8 +66,12 @@ module Autorake
       @configure.directories[ name] = val
     end
 
-    def set_with name, val
+    def set_feature name, val
       @configure.features[ name] = val
+    end
+
+    def set_parm name, val
+      @configure.parameters[ name] = val
     end
 
     def set_incdir name, val

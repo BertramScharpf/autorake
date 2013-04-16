@@ -7,17 +7,18 @@ require "yaml"
 
 module Autorake
 
-  class Configure
+  class Definitions
 
     attr_reader :environment, :directories, :features
-    def incpath ; @paths[ :inc] ; end
-    def libpath ; @paths[ :lib] ; end
+    def parameters ; @args[ :par] ; end
+    def incpath    ; @args[ :inc] ; end
+    def libpath    ; @args[ :lib] ; end
 
     def initialize
       @environment = {}
       @directories = Directories.new
       @features = {}
-      @paths = { :inc => {}, :lib => {}, }
+      @args = { :par => {}, :inc => {}, :lib => {}, }
     end
 
     def dump
@@ -27,10 +28,10 @@ module Autorake
       @directories.keys.each { |k| puts "  #{k}=#{@directories.expanded k}" }
       puts "Features:"
       @features.each { |k,v| puts "  #{k}=#{v}" }
-      puts "Paths:"
-      @paths.each { |t,p|
+      puts "Arguments:"
+      @args.each { |t,p|
         puts "  #{t}:"
-        @paths[ t].each { |k,v| puts "    #{k}=#{v}" }
+        @args[ t].each { |k,v| puts "    #{k}=#{v}" }
       }
     end
 
@@ -44,26 +45,34 @@ module Autorake
     ensure
       @current = nil
     end
-    def with name, &block
+    def enable name, &block
       feature name, true, &block
     end
-    def without name, &block
+    def disable name, &block
       feature name, false, &block
     end
 
-    def incdir name, dir ; pathdir :inc, name, dir ; end
-    def libdir name, dir ; pathdir :lib, name, dir ; end
+    def with   name, val ; argdef :par, name, val ; end
+
+    def incdir name, dir ; argdef :inc, name, dir ; end
+    def libdir name, dir ; argdef :lib, name, dir ; end
+
 
     def have_header name
     end
 
+
     private
 
-    def pathdir type, name, dir
+    def argdef type, name, dir
       return unless dir
       dir.chomp!
       return if dir.empty?
-      @paths[ type][ name] = dir
+      if @current then
+        name = "#@current/#{name}"
+        name = name.to_sym if name.is_a? Symbol
+      end
+      @args[ type][ name] = dir
     end
 
   end

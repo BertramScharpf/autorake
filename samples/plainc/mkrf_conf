@@ -8,12 +8,13 @@ require "autorake/mkconfig"
 
 Autorake.configure {
 
-  incdir :dummy, "/path/to/dummy"
-  libdir :dummy, "/path/to/dummy"
 
   have_header "stdio.h"
 
-  feature :now, false do
+  disable :now do
+    with :foo, "dummy"
+    incdir :bar, "/path/to/bar"
+    libdir :baz, "/path/to/baz"
   end
 
 }
