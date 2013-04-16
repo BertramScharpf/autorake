@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
                           lib/autorake.rb
                           lib/autorake/application.rb
                           lib/autorake/configure.rb
+                          lib/autorake/compile.rb
                           lib/autorake/directories.rb
                           lib/autorake/mkconfig.rb
                           lib/autorake/version.rb
