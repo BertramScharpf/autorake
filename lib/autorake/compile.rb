@@ -127,6 +127,8 @@ module Autorake
       private :new
     end
 
+    attr_reader :src
+
     def initialize source
       @plain = "tmp-0001"
       begin

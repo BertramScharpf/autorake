@@ -19,6 +19,7 @@ module Autorake
       @directories = Directories.new
       @features = {}
       @args = { :par => {}, :inc => {}, :lib => {}, }
+      @checks = []
     end
 
     def dump
@@ -59,8 +60,24 @@ module Autorake
 
 
     def have_header name
+      c = CheckHeader.new @current, name
+      @checks.push c
     end
 
+    def have_macro name, *headers
+      c = CheckMacro.new @current, name, *headers
+      @checks.push c
+    end
+
+    def have_func name, *headers
+      c = CheckFunction.new @current, name, *headers
+      @checks.push c
+    end
+
+    def have_library name
+      c = CheckLibrary.new @current, name
+      @checks.push c
+    end
 
     private
 
@@ -75,6 +92,103 @@ module Autorake
       @args[ type][ name] = dir
     end
 
+  end
+
+
+  class Check
+    def initialize feature, name, *args
+      @feature, @name = feature, name
+    end
+    def perform src
+      print "Checking for #{self.class::TYPE} #@name ... "
+      res = TmpFiles.open build_source do |t|
+        c = build_compiler
+        c.cc t.src, t.obj
+      end
+      puts res ? "yes" : "no"
+      res
+    end
+  end
+
+  class CheckHeader < Check
+    TYPE = "header"
+    def build_source
+      <<-SRC
+#include <#@name>
+      SRC
+    end
+    def build_compiler
+      c = CompilerPP.new
+      c.incdir "..."
+      c
+    end
+  end
+
+  class CheckWithHeaders < Check
+    def initialize feature, name, *headers
+      super
+      @headers = headers
+    end
+    def build_source
+      src = ""
+      @headers.each { |i|
+        src << <<-SRC
+#include <#{i}>
+        SRC
+      }
+      src
+    end
+  end
+
+  class CheckMacro < CheckWithHeaders
+    TYPE = "macro"
+    def build_source
+      super << <<-SRC
+#ifndef #@name
+#error not defined
+#endif
+      SRC
+    end
+    def build_compiler
+      c = CompilerPP.new
+      c.incdir "..."
+      c
+    end
+  end
+
+  class CheckFunction < CheckWithHeaders
+    def build_source
+      super << <<-SRC
+void dummy( void)
+{
+  void (*f)( void) = (void (*)( void)) #@name;
+}
+      SRC
+    end
+    def build_compiler
+      c = Compiler.new
+      c.incdir "..."
+      c
+    end
+  end
+
+  class CheckLibrary < Check
+    TYPE = "library"
+    def build_source
+      <<-SRC
+int main( int argc, char *argv[]) { return 0; }
+      SRC
+    end
+    def build_compiler
+      c = Linker.new
+      c.libdir "..."
+      c.lib @name
+      c
+    end
+    def perform
+      super or raise "Library missing: #@name."
+      true
+    end
   end
 
 end
