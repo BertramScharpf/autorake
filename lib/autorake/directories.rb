@@ -51,6 +51,10 @@ module Autorake
       end
     end
 
+    def expand_all dirs
+      dirs.map { |d| expand d }
+    end
+
   end
 
 end

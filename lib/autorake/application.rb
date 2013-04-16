@@ -54,6 +54,10 @@ module Autorake
       end
       execute
     rescue Done
+    rescue
+      raise if @verbose
+      $stderr.puts "#$! (#{$!.class})"
+      exit 1
     end
 
     private

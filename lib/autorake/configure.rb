@@ -10,11 +10,14 @@ module Autorake
   class Configure
 
     attr_reader :environment, :directories, :features
+    def incpath ; @paths[ :inc] ; end
+    def libpath ; @paths[ :lib] ; end
 
     def initialize
       @environment = {}
       @directories = Directories.new
       @features = {}
+      @paths = { :inc => {}, :lib => {}, }
     end
 
     def dump
@@ -24,9 +27,14 @@ module Autorake
       @directories.keys.each { |k| puts "  #{k}=#{@directories.expanded k}" }
       puts "Features:"
       @features.each { |k,v| puts "  #{k}=#{v}" }
+      puts "Paths:"
+      @paths.each { |t,p|
+        puts "  #{t}:"
+        @paths[ t].each { |k,v| puts "    #{k}=#{v}" }
+      }
     end
 
-    private
+    protected
 
     def feature name, enabled = nil
       @current and raise "Features may not be nested."
@@ -43,7 +51,19 @@ module Autorake
       feature name, false, &block
     end
 
+    def incdir name, dir ; pathdir :inc, name, dir ; end
+    def libdir name, dir ; pathdir :lib, name, dir ; end
+
     def have_header name
+    end
+
+    private
+
+    def pathdir type, name, dir
+      return unless dir
+      dir.chomp!
+      return if dir.empty?
+      @paths[ type][ name] = dir
     end
 
   end

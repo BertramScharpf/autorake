@@ -48,6 +48,12 @@ module Autorake
         add_option %W(enable-#{k}),  "enable  #{k} #{de}", nil, :set_with, k, true
         add_option %W(disable-#{k}), "disable #{k} #{dd}", nil, :set_with, k, false
       }
+      @configure.incpath.each { |k,v|
+        add_option %W(incdir-#{k}), "include directory #{k}", v, :set_incdir, k
+      }
+      @configure.libpath.each { |k,v|
+        add_option %W(libdir-#{k}), "library directory #{k}", v, :set_libdir, k
+      }
     end
 
     def set_dir name, val
@@ -56,6 +62,14 @@ module Autorake
 
     def set_with name, val
       @configure.features[ name] = val
+    end
+
+    def set_incdir name, val
+      @configure.incpath[ name] = val
+    end
+
+    def set_libdir name, val
+      @configure.libpath[ name] = val
     end
 
     def dump
@@ -75,10 +89,6 @@ module Autorake
           f.write @configure.to_yaml
         end
       end
-    rescue
-      raise if @verbose
-      $stderr.puts "#$! (#{$!.class})"
-      exit 1
     end
 
   end
