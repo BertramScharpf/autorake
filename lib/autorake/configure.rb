@@ -102,8 +102,7 @@ module Autorake
     def perform src
       print "Checking for #{self.class::TYPE} #@name ... "
       res = TmpFiles.open build_source do |t|
-        c = build_compiler
-        c.cc t.src, t.obj
+        compile t
       end
       puts res ? "yes" : "no"
       res
@@ -117,10 +116,10 @@ module Autorake
 #include <#@name>
       SRC
     end
-    def build_compiler
+    def compile t
       c = CompilerPP.new
       c.incdir "..."
-      c
+      c.cc t.cpp, t.src
     end
   end
 
@@ -149,10 +148,10 @@ module Autorake
 #endif
       SRC
     end
-    def build_compiler
+    def compile t
       c = CompilerPP.new
       c.incdir "..."
-      c
+      c.cc t.cpp, t.src
     end
   end
 
@@ -165,10 +164,10 @@ void dummy( void)
 }
       SRC
     end
-    def build_compiler
+    def compile t
       c = Compiler.new
       c.incdir "..."
-      c
+      c.cc t.obj, t.src
     end
   end
 
@@ -179,11 +178,13 @@ void dummy( void)
 int main( int argc, char *argv[]) { return 0; }
       SRC
     end
-    def build_compiler
-      c = Linker.new
-      c.libdir "..."
-      c.lib @name
-      c
+    def compile t
+      c =Compiler.new
+      c.cc t.obj, t.src
+      l = Linker.new
+      l.libdir "..."
+      l.lib @name
+      l.cc t.bin, t.obj
     end
     def perform
       super or raise "Library missing: #@name."
