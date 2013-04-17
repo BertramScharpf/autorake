@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 #
-#  mkrf_conf  --  configure Hello
+#  mkrf_conf  --  configure RbHello
 #
 
 require "autorake/mkconfig"

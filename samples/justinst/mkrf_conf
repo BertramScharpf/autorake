@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+#
+#  mkrf_conf  --  configure installer
+#
+
+require "autorake/mkconfig"
+
+Autorake.configure {
+
+  directory :vim,      "DATA/vim"
+  directory :vimfiles, "VIM/vimfiles"
+
+}
+

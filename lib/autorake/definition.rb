@@ -41,6 +41,10 @@ module Autorake
 
     protected
 
+    def directory name, dir
+      @directories[ name]= dir
+    end
+
     def feature name, enabled = nil
       name = name.to_sym
       @current and raise "Features may not be nested."

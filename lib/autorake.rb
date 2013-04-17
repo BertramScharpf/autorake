@@ -29,6 +29,9 @@ module Autorake
 
   
     def installer files, destdir, *params
+      destdir = @autorake.directories.expand destdir
+      d = ENV[ "DESTDIR"]
+      destdir = File.join d, destdir if d
     end
 
 
