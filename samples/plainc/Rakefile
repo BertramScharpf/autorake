@@ -4,6 +4,24 @@
 
 require "autorake"
 
+c = compiler "-O2"
+l = linker
+
+task "hello.o" => "hello.c" do
+  c.cc "hello.o", "hello.c"
+end
+
+task "hello" => "hello.o" do
+  l.cc "hello", "hello.o"
+end
+
+task :default => "hello"
+
+task :clean do
+  rm "hello"
+  rm "hello.o"
+end
+
 task :foo do
   puts parameter(:foo)
 end

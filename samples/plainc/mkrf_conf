@@ -8,14 +8,14 @@ require "autorake/mkconfig"
 
 Autorake.configure {
 
-  extending_ruby
+  # extending_ruby
 
   have_header "stdio.h"
 
   disable :now do
     with :foo, "dummy"
-    incdir :bar, "/path/to/bar"
-    libdir :baz, "/path/to/baz"
+    # incdir :bar, "/path/to/bar"
+    # libdir :baz, "/path/to/baz"
   end
 
 }

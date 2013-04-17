@@ -42,10 +42,11 @@ module Autorake
       c.do_env
       @directories.each { |k,v| c.directories[ k] = @directories.expanded k }
       c.features.update @features
+      af = @features.keys.map { |k| AddFeature.new k }
       am = @args[ :par].map { |k,v| AddMacro.new k, v }
       ai = @args[ :inc].map { |k,v| AddIncdir.new k, v, @directories }
       al = @args[ :lib].map { |k,v| AddLibdir.new k, v, @directories }
-      [ am, ai, al, @checks].each { |a| a.each { |k| k.perform c } }
+      [ af, am, ai, al, @checks].each { |a| a.each { |k| k.perform c } }
       c
     end
 
@@ -142,6 +143,15 @@ module Autorake
       r = @name.to_s.upcase
       r.gsub! /[^A-Z_]/, "_"
       r
+    end
+  end
+
+  class AddFeature < Add
+    def initialize feature
+      super feature, feature
+    end
+    def set!
+      @config.macros[ "FEATURE_#{name_upcase}"] = true
     end
   end
 

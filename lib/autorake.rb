@@ -3,6 +3,7 @@
 #
 
 require "autorake/configure"
+require "autorake/compile"
 
 module Autorake
 
