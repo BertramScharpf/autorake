@@ -72,6 +72,21 @@ module Autorake
     def incdir name, dir ; argdef :inc, name, dir ; end
     def libdir name, dir ; argdef :lib, name, dir ; end
 
+    def extending_ruby
+      if RUBY_VERSION < "1.9" then
+        incdir :ruby, RbConfig::CONFIG[ "topdir"]
+      else
+        h = RbConfig::CONFIG[ "rubyhdrdir"]
+        incdir :ruby, h
+        incdir :ruby_arch, (File.join h, RbConfig::CONFIG[ "arch"])
+        #incdir :ruby_backward, (File.join h, "ruby/backward")
+      end
+      libdir :ruby, RbConfig::CONFIG[ "libdir"]
+      l = RbConfig::CONFIG[ "LIBRUBY"]
+      l.slice! /\Alib/
+      l.slice! /\.so(?:\..*)?\z/
+      have_library l
+    end
 
     def have_header name
       c = CheckHeader.new @current, name
