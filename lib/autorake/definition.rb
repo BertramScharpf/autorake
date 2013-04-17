@@ -2,7 +2,6 @@
 #  autorake/definition.rb  --  Definitions to produce a config
 #
 
-require "autorake/directories"
 require "autorake/compile"
 require "autorake/configure"
 
@@ -24,28 +23,18 @@ module Autorake
     end
 
     def dump
-      puts "Environment:"
-      @environment.each { |k,v| puts "  #{k}=#{v}" }
-      puts "Directories:"
-      @directories.keys.each { |k| puts "  #{k}=#{@directories.expanded k}" }
-      puts "Features:"
-      @features.each { |k,v| puts "  #{k}=#{v}" }
-      puts "Arguments:"
-      @args.each { |t,p|
-        puts "  #{t}:"
-        @args[ t].each { |k,v| puts "    #{k}=#{v}" }
-      }
+      c = perform
+      c.dump
     end
 
     def perform
-      c = Configuration.new @environment
+      c = Configuration.new @environment, @directories
       c.do_env
-      @directories.each { |k,v| c.directories[ k] = @directories.expanded k }
       c.features.update @features
       af = @features.keys.map { |k| AddFeature.new k }
       am = @args[ :par].map { |k,v| AddMacro.new k, v }
-      ai = @args[ :inc].map { |k,v| AddIncdir.new k, v, @directories }
-      al = @args[ :lib].map { |k,v| AddLibdir.new k, v, @directories }
+      ai = @args[ :inc].map { |k,v| AddIncdir.new k, v }
+      al = @args[ :lib].map { |k,v| AddLibdir.new k, v }
       [ af, am, ai, al, @checks].each { |a| a.each { |k| k.perform c } }
       c
     end
@@ -156,7 +145,7 @@ module Autorake
   end
 
   class AddKeyVal < Add
-    def initialize key, val, dirs = nil
+    def initialize key, val
       x, y = key.to_s.split "/"
       if y then
         x = x.to_sym
@@ -165,11 +154,10 @@ module Autorake
       end
       super x, y.to_sym
       @val = val
-      @dirs = dirs
     end
     private
     def expanded
-      @dirs.expand @val
+      @config.directories.expand @val
     end
   end
   class AddMacro < AddKeyVal

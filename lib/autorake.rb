@@ -27,6 +27,11 @@ module Autorake
       Linker.new @autorake.libdirs, @autorake.libs, *args
     end
 
+  
+    def installer files, destdir, *params
+    end
+
+
     def load_autorake filename = nil
       @autorake = YAML.load_file filename||Configuration::CONFIG_FILE
       @autorake.do_env
