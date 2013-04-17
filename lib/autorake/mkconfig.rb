@@ -2,7 +2,7 @@
 #  autorake/mkconfig.rb  --  Make configuration
 #
 
-require "autorake/configure"
+require "autorake/definition"
 require "autorake/application"
 
 module Autorake

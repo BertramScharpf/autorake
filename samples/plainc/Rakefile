@@ -1,0 +1,11 @@
+#
+#  Rakefile  --  build some libraries
+#
+
+# require "autorake"
+
+puts "++++ " + inspect
+task :foo do
+  puts "**** " + inspect
+end
+
