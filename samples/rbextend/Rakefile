@@ -1,0 +1,23 @@
+#
+#  Rakefile  --  build some libraries
+#
+
+require "autorake"
+
+c = compiler "-O2", "-fPIC"
+l = linker "-shared"
+
+rule ".o" => ".c" do |t|
+  c.cc t.name, t.source
+end
+
+task "hello.so" => "hello.o" do |t|
+  l.cc t.name, t.prerequisites
+end
+
+task :default => "hello.so"
+
+task :clean do
+  FileList[ "*.o", "*.so"].each { |f| rm_f f }
+end
+
