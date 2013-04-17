@@ -52,6 +52,7 @@ module Autorake
     protected
 
     def feature name, enabled = nil
+      name = name.to_sym
       @current and raise "Features may not be nested."
       @current = name
       @features[ name] = enabled
@@ -98,11 +99,8 @@ module Autorake
       return unless dir
       dir.chomp!
       return if dir.empty?
-      if @current then
-        name = "#@current/#{name}"
-        name = name.to_sym if name.is_a? Symbol
-      end
-      @args[ type][ name] = dir
+      name = "#@current/#{name}" if @current
+      @args[ type][ name.to_sym] = dir
     end
 
   end
@@ -121,12 +119,12 @@ module Autorake
     private
     def check!
       not @feature or
-        @config.features[ @feature.to_s] || @config.features[ @feature.to_sym]
+        @config.features[ @feature]
     end
     def set!
     end
     def name_upcase
-      r = @name.upcase
+      r = @name.to_s.upcase
       r.gsub! /[^A-Z_]/, "_"
       r
     end
@@ -134,9 +132,13 @@ module Autorake
 
   class AddKeyVal < Add
     def initialize key, val, dirs = nil
-      x, y = key.split "/"
-      x, y = nil, x unless y
-      super x, y
+      x, y = key.to_s.split "/"
+      if y then
+        x = x.to_sym
+      else
+        x, y = nil, x
+      end
+      super x, y.to_sym
       @val = val
       @dirs = dirs
     end
@@ -147,6 +149,7 @@ module Autorake
   end
   class AddMacro < AddKeyVal
     def set!
+      @config.parameters[ @name] = @val
       @config.macros[ "WITH_#{name_upcase}"] = @val
     end
   end
@@ -236,7 +239,7 @@ void dummy( void)
       SRC
     end
     def compile t
-      c = Compiler.new @config.incdirs, @config.macros
+      c = CompilerC.new @config.incdirs, @config.macros
       c.cc t.obj, t.src
     end
     def set!
@@ -252,7 +255,7 @@ int main( int argc, char *argv[]) { return 0; }
       SRC
     end
     def compile t
-      c = Compiler.new @config.incdirs, @config.macros
+      c = CompilerC.new @config.incdirs, @config.macros
       c.cc t.obj, t.src do
         l = Linker.new @config.libdirs, [ @name]
         l.cc t.bin, t.obj

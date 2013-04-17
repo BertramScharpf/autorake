@@ -8,8 +8,10 @@ module Autorake
 
   class Configuration
 
+    CONFIG_FILE = ".configure"
+
     attr_reader :directories
-    attr_reader :features
+    attr_reader :features, :parameters
     attr_reader :incdirs, :headers, :macros, :libdirs, :libs
 
     def initialize environment
@@ -17,6 +19,7 @@ module Autorake
       environment.each { |k,v| @environment[ k] = v }
       @directories = {}
       @features = {}
+      @parameters = {}
       @incdirs = []
       @headers = []
       @macros = {}

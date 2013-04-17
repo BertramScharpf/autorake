@@ -20,8 +20,6 @@ module Autorake
 
   class MkConfig < Application
 
-    CONFIG_FILE = ".configure"
-
     attr_accessor :outfile
     attr_bang :clean, :verbose
 
@@ -32,7 +30,8 @@ module Autorake
     private
 
     def define_options
-      add_option %w(o outfile), "specify output file",  CONFIG_FILE, :outfile=
+      add_option %w(o outfile), "specify output file",
+                                    Configuration::CONFIG_FILE, :outfile=
       add_option %w(c clean),   "delete config file resp. -o outfile",
                                                         nil, :clean!
       add_option %w(d dump),    "just dump the results", nil, :dump
@@ -67,19 +66,19 @@ module Autorake
     end
 
     def set_feature name, val
-      @definition.features[ name] = val
+      @definition.features[ name.to_sym] = val
     end
 
     def set_parm name, val
-      @definition.parameters[ name] = val
+      @definition.parameters[ name.to_sym] = val
     end
 
     def set_incdir name, val
-      @definition.incpath[ name] = val
+      @definition.incpath[ name.to_sym] = val
     end
 
     def set_libdir name, val
-      @definition.libpath[ name] = val
+      @definition.libpath[ name.to_sym] = val
     end
 
     def dump
