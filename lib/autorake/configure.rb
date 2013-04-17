@@ -3,6 +3,7 @@
 #
 
 require "autorake/directories"
+require "autorake/compile"
 require "yaml"
 
 module Autorake
@@ -36,6 +37,18 @@ module Autorake
       }
     end
 
+    def perform
+      c = Configuration.new @environment
+      c.do_env
+      @directories.each { |k,v| c.directories[ k] = @directories.expanded k }
+      c.features.update @features
+      am = @args[ :par].map { |k,v| AddMacro.new k, v }
+      ai = @args[ :inc].map { |k,v| AddIncdir.new k, v, @directories }
+      al = @args[ :lib].map { |k,v| AddLibdir.new k, v, @directories }
+      [ am, ai, al, @checks].each { |a| a.each { |k| k.perform c } }
+      c
+    end
+
     protected
 
     def feature name, enabled = nil
@@ -64,13 +77,13 @@ module Autorake
       @checks.push c
     end
 
-    def have_macro name, *headers
-      c = CheckMacro.new @current, name, *headers
+    def have_macro name
+      c = CheckMacro.new @current, name
       @checks.push c
     end
 
-    def have_func name, *headers
-      c = CheckFunction.new @current, name, *headers
+    def have_func name
+      c = CheckFunction.new @current, name
       @checks.push c
     end
 
@@ -95,11 +108,88 @@ module Autorake
   end
 
 
-  class Check
-    def initialize feature, name, *args
+  class Configuration
+
+    attr_reader :directories
+    attr_reader :features
+    attr_reader :incdirs, :headers, :macros, :libdirs, :libs
+
+    def initialize environment
+      @environment = {}
+      environment.each { |k,v| @environment[ k] = v }
+      @directories = {}
+      @features = {}
+      @incdirs = []
+      @headers = []
+      @macros = {}
+      @libdirs = []
+      @libs = []
+    end
+
+    def do_env
+      @environment.each { |k,v| ENV[ k] = v }
+    end
+
+  end
+
+
+  class Add
+    def initialize feature, name
       @feature, @name = feature, name
     end
-    def perform src
+    def perform config
+      @config = config
+      check! and set!
+    ensure
+      @config = nil
+    end
+    private
+    def check!
+      not @feature or
+        @config.features[ @feature.to_s] || @config.features[ @feature.to_sym]
+    end
+    def set!
+    end
+    def name_upcase
+      r = @name.upcase
+      r.gsub! /[^A-Z_]/, "_"
+      r
+    end
+  end
+
+  class AddKeyVal < Add
+    def initialize key, val, dirs = nil
+      x, y = key.split "/"
+      x, y = nil, x unless y
+      super x, y
+      @val = val
+      @dirs = dirs
+    end
+    private
+    def expanded
+      @dirs.expand @val
+    end
+  end
+  class AddMacro < AddKeyVal
+    def set!
+      @config.macros[ "WITH_#{name_upcase}"] = @val
+    end
+  end
+  class AddIncdir < AddKeyVal
+    def set!
+      @config.incdirs.push expanded
+    end
+  end
+  class AddLibdir < AddKeyVal
+    def set!
+      @config.libdirs.push expanded
+    end
+  end
+
+  class Check < Add
+    private
+    def check!
+      super or return
       print "Checking for #{self.class::TYPE} #@name ... "
       res = TmpFiles.open build_source do |t|
         compile t
@@ -111,26 +201,27 @@ module Autorake
 
   class CheckHeader < Check
     TYPE = "header"
+    private
     def build_source
       <<-SRC
 #include <#@name>
       SRC
     end
     def compile t
-      c = CompilerPP.new
-      c.incdir "..."
+      c = CompilerPP.new @config.incdirs, @config.macros
       c.cc t.cpp, t.src
+    end
+    def set!
+      @config.macros[ "HAVE_HEADER_#{name_upcase}"] = true
+      @config.headers.push @name
     end
   end
 
   class CheckWithHeaders < Check
-    def initialize feature, name, *headers
-      super
-      @headers = headers
-    end
+    private
     def build_source
       src = ""
-      @headers.each { |i|
+      @config.headers.each { |i|
         src << <<-SRC
 #include <#{i}>
         SRC
@@ -141,6 +232,7 @@ module Autorake
 
   class CheckMacro < CheckWithHeaders
     TYPE = "macro"
+    private
     def build_source
       super << <<-SRC
 #ifndef #@name
@@ -149,13 +241,17 @@ module Autorake
       SRC
     end
     def compile t
-      c = CompilerPP.new
-      c.incdir "..."
+      c = CompilerPP.new @config.incdirs, @config.macros
       c.cc t.cpp, t.src
+    end
+    def check!
+      super or raise "Macro not defined: #@name."
     end
   end
 
   class CheckFunction < CheckWithHeaders
+    TYPE = "function"
+    private
     def build_source
       super << <<-SRC
 void dummy( void)
@@ -165,9 +261,11 @@ void dummy( void)
       SRC
     end
     def compile t
-      c = Compiler.new
-      c.incdir "..."
+      c = Compiler.new @config.incdirs, @config.macros
       c.cc t.obj, t.src
+    end
+    def set!
+      @config.macros[ "HAVE_FUNC_#{name_upcase}"] = true
     end
   end
 
@@ -179,16 +277,17 @@ int main( int argc, char *argv[]) { return 0; }
       SRC
     end
     def compile t
-      c =Compiler.new
-      c.cc t.obj, t.src
-      l = Linker.new
-      l.libdir "..."
-      l.lib @name
-      l.cc t.bin, t.obj
+      c = Compiler.new @config.incdirs, @config.macros
+      c.cc t.obj, t.src do
+        l = Linker.new @config.libdirs, [ @name]
+        l.cc t.bin, t.obj
+      end
     end
-    def perform
+    def check!
       super or raise "Library missing: #@name."
-      true
+    end
+    def set!
+      @config.libs.push @name
     end
   end
 

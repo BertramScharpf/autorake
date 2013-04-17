@@ -9,9 +9,9 @@ module Autorake
 
   class <<self
     def configure &block
-      c = Definitions.new
-      c.instance_eval &block
-      p = MkConfig.new c
+      d = Definitions.new
+      d.instance_eval &block
+      p = MkConfig.new d
       p.run
       nil
     end
@@ -25,8 +25,8 @@ module Autorake
     attr_accessor :outfile
     attr_bang :clean, :verbose
 
-    def initialize configure
-      @configure = configure
+    def initialize definition
+      @definition = definition
     end
 
     private
@@ -39,10 +39,10 @@ module Autorake
       add_option %w(v verbose), "lots of ubly debugging information",
                                                         nil, :verbose!
       super
-      @configure.directories.each { |k,v|
+      @definition.directories.each { |k,v|
         add_option %W(dir-#{k}), "set directory #{k}", v, :set_dir, k
       }
-      @configure.features.each { |k,v|
+      @definition.features.each { |k,v|
         de, dd = "[default]", nil
         de, dd = dd, de unless v
         add_option %W(enable-#{k}),  "enable  #{k} #{de}", nil,
@@ -50,53 +50,54 @@ module Autorake
         add_option %W(disable-#{k}), "disable #{k} #{dd}", nil,
                                                         :set_feature, k, false
       }
-      @configure.parameters.each { |k,v|
+      @definition.parameters.each { |k,v|
         add_option %W(with-#{k}), "define a parameter and C macro #{k}", v,
                                                                 :set_parm, k
       }
-      @configure.incpath.each { |k,v|
+      @definition.incpath.each { |k,v|
         add_option %W(incdir-#{k}), "include directory #{k}", v, :set_incdir, k
       }
-      @configure.libpath.each { |k,v|
+      @definition.libpath.each { |k,v|
         add_option %W(libdir-#{k}), "library directory #{k}", v, :set_libdir, k
       }
     end
 
     def set_dir name, val
-      @configure.directories[ name] = val
+      @definition.directories[ name] = val
     end
 
     def set_feature name, val
-      @configure.features[ name] = val
+      @definition.features[ name] = val
     end
 
     def set_parm name, val
-      @configure.parameters[ name] = val
+      @definition.parameters[ name] = val
     end
 
     def set_incdir name, val
-      @configure.incpath[ name] = val
+      @definition.incpath[ name] = val
     end
 
     def set_libdir name, val
-      @configure.libpath[ name] = val
+      @definition.libpath[ name] = val
     end
 
     def dump
-      @configure.dump
+      @definition.dump
       raise Done
     end
 
     def environ name, val
-      @configure.environment[ name] = val
+      @definition.environment[ name] = val
     end
 
     def execute
       if @clean then
         File.unlink @outfile if File.file? @outfile
       else
+        cfg = @definition.perform
         File.open @outfile, "w" do |f|
-          f.write @configure.to_yaml
+          f.write cfg.to_yaml
         end
       end
     end

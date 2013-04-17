@@ -8,7 +8,6 @@ require "autorake/mkconfig"
 
 Autorake.configure {
 
-
   have_header "stdio.h"
 
   disable :now do

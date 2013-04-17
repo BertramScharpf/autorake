@@ -5,12 +5,12 @@
 module Autorake
 
   class Compiler
-
-    def cc *args
-      args.flatten!
-      args.compact!
-      args.unshift ENV[ "CC"] || "cc"
-      system *args
+    
+    def cc *a
+      a.flatten!
+      a.compact!
+      a.unshift ENV[ "CC"] || "cc"
+      system *a
       if block_given? then
         yield if $?.success?
       else
@@ -22,27 +22,22 @@ module Autorake
 
   class CompilerPP < Compiler
 
-    def initialize *args
+    def initialize incdirs, macros, *args
+      @incdirs = incdirs.map { |d| "-I#{d}" }
+      @macros = macros.map { |k,v|
+        next unless v
+        m = "-D#{k}"
+        m << "=#{v}" if String === v
+        m
+      }
       @args = args
-      @incdirs = []
-      @macros = []
       e = ENV[ "CFLAGS"]
       @cflags = e.split if e
     end
 
-    def incdir d
-      @incdirs.push "-I#{d}"
-    end
-
-    def macro name, val
-      m = "-D#{name}"
-      m << "=#{val}" if val
-      @macros.push m
-    end
-
-    def cc obj, src
+    def cc obj, src, &block
       io = [ "-o", obj.to_s, "-c", src.to_s]
-      super @cflags, @macros, @incdirs, @args, opt_E, io
+      super @cflags, @macros, @incdirs, @args, opt_E, io, &block
     end
 
     private
@@ -63,57 +58,21 @@ module Autorake
 
   class Linker < Compiler
 
-    def initialize *args
-      @args = args
-      @libs = []
-      @libdirs = []
+    def initialize libdirs, libs, *args
+      @libdirs = libdirs.map { |d| "-Wl,-L#{d}" }
+      @libs = libs.map { |d| "-Wl,-l#{d}" }
+    @args = args
       e = ENV[ "LDFLAGS"]
       @ldflags = e.split if e
     end
 
-    def incdir d
-      @libdirs.push "-Wl,-L#{d}"
-    end
-
-    def library lib
-      @libs.push "-Wl,-l#{lib}"
-    end
-
-    def cc bin, *objs
+    def cc bin, *objs, &block
       io = [ "-o", bin.to_s, objs]
-      super @ldflags, @libdirs, @libs, @args, io
+      super @ldflags, @libdirs, @libs, @args, io, &block
     end
 
   end
 
-
-  class OldCompilers
-
-    def compile name, source, only_pp = nil
-      filename = tmp_filename name
-      objname  = filename.sub /(\.\w+)?\z/, ".o" if block_given?
-      File.open filename, "w" do |c| c.puts source end
-      begin
-        @config.cc_cmd :quiet, ("-E" if only_pp),
-                "-c", filename, "-o", objname||"/dev/null",
-                @config.opt_incdirs do
-          yield objname if objname
-        end
-      ensure
-        File.delete objname if objname
-        File.delete filename
-      end
-    end
-
-    def link name, library
-      source = "int main( int argc, char *argv[]) { return 0; }"
-      compile name, source do |objname|
-        @config.cc_cmd :quiet, objname, "-o", "/dev/null",
-                @config.opt_libdirs, "-Wl,-l#{library}"
-      end
-    end
-
-  end
 
   class TmpFiles
 
