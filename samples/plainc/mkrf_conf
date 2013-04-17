@@ -8,8 +8,6 @@ require "autorake/mkconfig"
 
 Autorake.configure {
 
-  # extending_ruby
-
   have_header "stdio.h"
 
   disable :now do

@@ -7,19 +7,18 @@ require "autorake"
 c = compiler "-O2"
 l = linker
 
-task "hello.o" => "hello.c" do
-  c.cc "hello.o", "hello.c"
+rule ".o" => ".c" do |t|
+  c.cc t.name, t.source
 end
 
-task "hello" => "hello.o" do
-  l.cc "hello", "hello.o"
+task "hello" => "hello.o" do |t|
+  l.cc t.name, t.prerequisites
 end
 
 task :default => "hello"
 
 task :clean do
-  rm "hello"
-  rm "hello.o"
+  FileList[ "*.o", "hello"].each { |f| rm_f f }
 end
 
 task :foo do
