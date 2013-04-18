@@ -22,6 +22,6 @@ task :clean do
 end
 
 task :foo do
-  puts parameter(:foo)
+  puts "Parameter foo is: %s." % parm[ :foo]
 end
 

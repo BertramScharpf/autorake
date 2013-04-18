@@ -11,5 +11,10 @@ Autorake.configure {
   directory :vim,      "DATA/vim"
   directory :vimfiles, "VIM/vimfiles"
 
+  disable :dial
+
+  with :user,  "games"
+  with :group, "games"
+
 }
 

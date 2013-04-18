@@ -1,0 +1,32 @@
+#
+#  Rakefile  --  build some libraries
+#
+
+require "autorake"
+
+task :default
+
+task :clean
+
+
+# Installers
+
+vims = %w(
+  plugin/ruby.vim
+  plugin/yesno.vim
+)
+
+if has? :dial then
+  vims.concat %w(
+    plugin/dial.vim
+  )
+end
+
+ug = { :user => parm[ :user], :group => parm[ :group] }
+
+installer "vimfiles", "VIM"
+
+vims.each { |v|
+  installer v, "VIMFILES", ug
+}
+
