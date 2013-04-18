@@ -26,7 +26,5 @@ ug = { :user => parm[ :user], :group => parm[ :group] }
 
 installer "vimfiles", "VIM"
 
-vims.each { |v|
-  installer v, "VIMFILES", ug
-}
+installer vims, "VIMFILES", ug
 
