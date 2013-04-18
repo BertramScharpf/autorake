@@ -31,6 +31,8 @@ module Autorake
       c = Configuration.new @environment, @directories
       c.do_env
       c.features.update @features
+      c.incdirs.push std_incdir
+      c.libdirs.push std_libdir
       af = @features.keys.map { |k| AddFeature.new k }
       am = @args[ :par].map { |k,v| AddMacro.new k, v }
       ai = @args[ :inc].map { |k,v| AddIncdir.new k, v }
@@ -40,6 +42,9 @@ module Autorake
     end
 
     protected
+
+    def std_incdir ; @directories.expand "INCLUDE" ; end
+    def std_libdir ; @directories.expand "LIB"     ; end
 
     def directory name, dir
       @directories[ name]= dir
