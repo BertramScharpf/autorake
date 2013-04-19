@@ -208,7 +208,7 @@ module Autorake
       SRC
     end
     def compile t
-      c = CompilerPP.new @config.incdirs, @config.macros
+      c = CompilerPP.new @config.incdirs, @config.macros, "-w"
       c.cc t.cpp, t.src
     end
     def set!
@@ -241,7 +241,7 @@ module Autorake
       SRC
     end
     def compile t
-      c = CompilerPP.new @config.incdirs, @config.macros
+      c = CompilerPP.new @config.incdirs, @config.macros, "-w"
       c.cc t.cpp, t.src
     end
     def check!
@@ -261,7 +261,7 @@ void dummy( void)
       SRC
     end
     def compile t
-      c = CompilerC.new @config.incdirs, @config.macros
+      c = CompilerC.new @config.incdirs, @config.macros, "-w"
       c.cc t.obj, t.src
     end
     def set!
@@ -277,9 +277,9 @@ int main( int argc, char *argv[]) { return 0; }
       SRC
     end
     def compile t
-      c = CompilerC.new @config.incdirs, @config.macros
+      c = CompilerC.new @config.incdirs, @config.macros, "-w"
       c.cc t.obj, t.src do
-        l = Linker.new @config.libdirs, [ @name]
+        l = Linker.new @config.libdirs, [ @name], "-w"
         l.cc t.bin, t.obj
       end
     end
