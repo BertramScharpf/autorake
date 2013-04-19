@@ -5,9 +5,9 @@
 
 #include "hello.h"
 
-#if   HAVE_HEADER_RUBY_H
+#if   defined( HAVE_HEADER_RUBY_H)
     #include <ruby.h>
-#elif HAVE_HEADER_RUBY_RUBY_H
+#elif defined( HAVE_HEADER_RUBY_RUBY_H)
     #include <ruby/ruby.h>
 #else
     #error "Ruby doesn't seem to be installed."
