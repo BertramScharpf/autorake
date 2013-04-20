@@ -2,8 +2,6 @@
 #  autorake.gemspec  --  Autorake Gem specification
 #
 
-require "rubygems"
-
 $:.unshift "./lib"
 require "autorake/version"
 

@@ -12,6 +12,7 @@ module Autorake
     class <<self
       def extended obj
         obj.load_autorake
+        Compiler.verbose = true
       end
     end
 

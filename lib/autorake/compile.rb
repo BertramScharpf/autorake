@@ -6,15 +6,29 @@ module Autorake
 
   class Compiler
     
+    class <<self
+      attr_accessor :verbose
+    end
+
     def cc *a
       a.flatten!
       a.compact!
       a.unshift ENV[ "CC"] || "cc"
+      message a
       system *a
       if block_given? then
         yield if $?.success?
       else
         $?.success?
+      end
+    end
+
+    private
+
+    def message a
+      if Compiler.verbose then
+        m = a.join " "
+        puts m
       end
     end
 
