@@ -28,8 +28,20 @@ Gem::Specification.new do |s|
                           lib/autorake/directories.rb
                           lib/autorake/mkconfig.rb
                           lib/autorake/version.rb
+
+                          samples/plainc/Rakefile
                           samples/plainc/mkrf_conf
                           samples/plainc/hello.c
+                          samples/rbextend/Rakefile
+                          samples/rbextend/mkrf_conf
+                          samples/rbextend/hello.c
+                          samples/rbextend/hello.h
+                          samples/rbextend/rbhello
+                          samples/justinst/Rakefile
+                          samples/justinst/mkrf_conf
+                          samples/justinst/plugin/dial.vim
+                          samples/justinst/plugin/ruby.vim
+                          samples/justinst/plugin/yesno.vim
                         )
   s.executables       = %w()
   s.extra_rdoc_files  = %w(
