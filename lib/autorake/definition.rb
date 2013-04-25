@@ -28,6 +28,7 @@ module Autorake
     end
 
     def perform
+      Compiler.quiet = true
       c = Configuration.new @environment, @directories
       c.do_env
       c.features.update @features

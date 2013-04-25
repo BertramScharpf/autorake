@@ -7,7 +7,7 @@ module Autorake
   class Compiler
     
     class <<self
-      attr_accessor :verbose
+      attr_accessor :verbose, :quiet
     end
 
     def cc *a
@@ -15,7 +15,11 @@ module Autorake
       a.compact!
       a.unshift ENV[ "CC"] || "cc"
       message a
-      system *a
+      f = fork do
+        $stderr.reopen "/dev/null" if Compiler.quiet
+        exec *a
+      end
+      Process.waitpid f
       if block_given? then
         yield if $?.success?
       else
