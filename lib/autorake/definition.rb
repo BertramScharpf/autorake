@@ -195,8 +195,13 @@ module Autorake
       res = TmpFiles.open build_source do |t|
         compile t
       end
-      puts res ? "yes" : "no"
-      res
+      print "yes"
+      true
+    rescue Compiler::Error
+      print "no"
+      false
+    ensure
+      puts
     end
   end
 
@@ -279,10 +284,9 @@ int main( int argc, char *argv[]) { return 0; }
     end
     def compile t
       c = CompilerC.new @config.incdirs, @config.macros, "-w"
-      c.cc t.obj, t.src do
-        l = Linker.new @config.libdirs, [ @name], "-w"
-        l.cc t.bin, t.obj
-      end
+      c.cc t.obj, t.src
+      l = Linker.new @config.libdirs, [ @name], "-w"
+      l.cc t.bin, t.obj
     end
     def check!
       super or raise "Library missing: #@name."

@@ -32,7 +32,7 @@ module Autorake
       Linker.new @autorake.libdirs, @autorake.libs, *args
     end
 
-  
+
     def installer files, destdir, params = nil
       destdir = @autorake.directories.expand destdir
       d = ENV[ "DESTDIR"]

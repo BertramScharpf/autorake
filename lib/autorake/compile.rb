@@ -5,7 +5,9 @@
 module Autorake
 
   class Compiler
-    
+
+    class Error < StandardError ; end
+
     class <<self
       attr_accessor :verbose, :quiet
     end
@@ -20,11 +22,7 @@ module Autorake
         exec *a
       end
       Process.waitpid f
-      if block_given? then
-        yield if $?.success?
-      else
-        $?.success?
-      end
+      $?.success? or raise Error, "#{self.class} failed."
     end
 
     private
@@ -53,9 +51,9 @@ module Autorake
       @cflags = e.split if e
     end
 
-    def cc obj, src, &block
+    def cc obj, src
       io = [ "-o", obj.to_s, "-c", src.to_s]
-      super @cflags, @macros, @incdirs, @args, opt_E, io, &block
+      super @cflags, @macros, @incdirs, @args, opt_E, io
     end
 
     private
@@ -84,9 +82,9 @@ module Autorake
       @ldflags = e.split if e
     end
 
-    def cc bin, *objs, &block
+    def cc bin, *objs
       io = [ "-o", bin.to_s, objs]
-      super @ldflags, @libdirs, @libs, @args, io, &block
+      super @ldflags, @libdirs, @libs, @args, io
     end
 
   end
