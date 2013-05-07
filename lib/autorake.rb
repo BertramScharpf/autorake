@@ -44,15 +44,13 @@ module Autorake
         when Array then files
         else            [ files]
       end
-      task :install do
-        File.directory? destdir or mkdir_p destdir
-        files.each { |f| install f, destdir, params }
+      unless @autorake_install then
+        task :install   do install_targets   end
+        task :uninstall do uninstall_targets end
+        @autorake_install = []
       end
-      task :uninstall do
-        files.each { |f| uninstall f, destdir }
-      end
+      @autorake_install.push [ files, destdir, params]
     end
-
 
     def load_autorake filename = nil
       @autorake = YAML.load_file filename||Configuration::CONFIG_FILE
@@ -60,6 +58,19 @@ module Autorake
     end
 
     private
+
+    def install_targets
+      @autorake_install.each { |files,destdir,params|
+        File.directory? destdir or mkdir_p destdir
+        files.each { |f| install f, destdir, params }
+      }
+    end
+
+    def uninstall_targets
+      @autorake_install.reverse.each { |files,destdir|
+        files.each { |f| uninstall f, destdir }
+      }
+    end
 
     def install src, dir, ugm
       d, = File.split src
@@ -88,7 +99,7 @@ module Autorake
     def uninstall src, dir
       dst = File.join dir, src
       if File.directory? src or not File.exists? src then
-        Dir.rmdir dst rescue return
+        rmdir dst rescue return
       else
         rm dst
       end
