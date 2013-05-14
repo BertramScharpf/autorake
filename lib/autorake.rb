@@ -81,6 +81,7 @@ module Autorake
         return if File.directory? dst
         mkdir dst
       elsif File.symlink? src then
+        rm dst if File.exists? dst
         rdl = File.readlink src
         ln_s rdl, dst
       else
@@ -104,7 +105,7 @@ module Autorake
       if File.directory? src or not File.exists? src then
         rmdir dst rescue return
       else
-        rm dst
+        rm dst if File.exists? dst
       end
       d, = File.split src
       d = nil if d == "."
