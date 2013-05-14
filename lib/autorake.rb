@@ -80,6 +80,9 @@ module Autorake
       if File.directory? src or not File.exists? src then
         return if File.directory? dst
         mkdir dst
+      elsif File.symlink? src then
+        rdl = File.readlink src
+        ln_s rdl, dst
       else
         cp src, dst
       end
