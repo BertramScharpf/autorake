@@ -105,7 +105,7 @@ module Autorake
       if File.directory? src or not File.exists? src then
         rmdir dst rescue return
       else
-        rm dst if File.exists? dst
+        rm dst if File.exists? dst or File.symlink? dst
       end
       d, = File.split src
       d = nil if d == "."
