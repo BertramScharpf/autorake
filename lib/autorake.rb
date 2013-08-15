@@ -33,7 +33,11 @@ module Autorake
     end
 
 
-    def installer files, destdir, params = nil
+    def installer under, files, destdir = nil, params = nil
+      not params and case destdir
+        when nil, Hash then
+          under, files, destdir, params = nil, under, files, destdir
+      end
       destdir = @autorake.directories.expand destdir
       d = ENV[ "DESTDIR"]
       if d then
@@ -49,7 +53,7 @@ module Autorake
         task :uninstall do uninstall_targets end
         @autorake_install = []
       end
-      @autorake_install.push [ files, destdir, params]
+      @autorake_install.push [ under, files, destdir, params]
     end
 
     def load_autorake filename = nil
@@ -60,23 +64,24 @@ module Autorake
     private
 
     def install_targets
-      @autorake_install.each { |files,destdir,params|
+      @autorake_install.each { |under,files,destdir,params|
         File.directory? destdir or mkdir_p destdir
-        files.each { |f| install f, destdir, params }
+        files.each { |f| install under, f, destdir, params }
       }
     end
 
     def uninstall_targets
-      @autorake_install.reverse.each { |files,destdir|
+      @autorake_install.reverse.each { |under,files,destdir,|
         files.each { |f| uninstall f, destdir }
       }
     end
 
-    def install src, dir, ugm
+    def install under, src, dir, ugm
       d, = File.split src
       d = nil if d == "."
-      install d, dir, ugm if d
+      install under, d, dir, ugm if d
       dst = File.join dir, src
+      src = File.join under, src if under
       if File.directory? src or not File.exists? src then
         return if File.directory? dst
         mkdir dst

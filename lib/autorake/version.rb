@@ -6,7 +6,7 @@ module Autorake
 
   NAME        = "autorake"
   VERSION     = "2.0"
-  SUMMARY     = "Configure project before Rake build pr install."
+  SUMMARY     = "Configure project before Rake build or install."
 
   DESCRIPTION = <<EOT
 This script allows you to write pretty mkrf_conf scripts
