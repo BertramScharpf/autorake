@@ -72,49 +72,52 @@ module Autorake
 
     def uninstall_targets
       @autorake_install.reverse.each { |under,files,destdir,|
-        files.each { |f| uninstall f, destdir }
+        files.each { |f| uninstall under, f, destdir }
       }
     end
 
-    def install under, src, dir, ugm
-      d, = File.split src
-      d = nil if d == "."
-      install under, d, dir, ugm if d
+    def paths_for_install under, src, dir
       dst = File.join dir, src
-      src = File.join under, src if under
-      if File.directory? src or not File.exists? src then
-        return if File.directory? dst
-        mkdir dst
-      elsif File.symlink? src then
-        rm dst if File.exists? dst
-        rdl = File.readlink src
-        ln_s rdl, dst
-      else
-        cp src, dst
-      end
-      if ugm then
-        u, g = ugm[ :user], ugm[ :group]
-        u = nil if u and u.empty?
-        g = nil if g and g.empty?
-        chown u, g, dst if u or g
-        m = ugm[ :mode]
-        if m and not m.empty? then
-          m = Integer m
-          chmod m, dst
+      here = under ? (File.join under, src) : src
+      there, = File.split src
+      there = nil if there == "."
+      yield dst, here, there
+    end
+
+    def install under, src, dir, ugm
+      paths_for_install under, src, dir do |dst,here,there|
+        install under, there, dir, ugm if there
+        if File.directory? here or not File.exists? here then
+          return if File.directory? dst
+          mkdir dst
+        elsif File.symlink? here then
+          rm dst if File.exists? dst
+          rdl = File.readlink here
+          ln_s rdl, dst
+        else
+          cp here, dst
+        end
+        if ugm then
+          u, g = [ :user, :group].map { |x| y = ugm[ x] ; y unless y.empty? }
+          chown u, g, dst if u or g
+          m = ugm[ :mode]
+          if m and not m.empty? then
+            m = Integer m
+            chmod m, dst
+          end
         end
       end
     end
 
-    def uninstall src, dir
-      dst = File.join dir, src
-      if File.directory? src or not File.exists? src then
-        rmdir dst rescue return
-      else
-        rm dst if File.exists? dst or File.symlink? dst
+    def uninstall under, src, dir
+      paths_for_install under, src, dir do |dst,here,there|
+        if File.directory? here or not File.exists? here then
+          rmdir dst rescue return
+        else
+          rm dst if File.exists? dst or File.symlink? dst
+        end
+        uninstall under, there, dir if there
       end
-      d, = File.split src
-      d = nil if d == "."
-      uninstall d, dir if d
     end
 
   end
