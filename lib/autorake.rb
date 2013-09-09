@@ -11,7 +11,7 @@ module Autorake
 
     class <<self
       def extended obj
-        obj.load_autorake
+        obj.load_autorake ENV[ "AUTORAKE_CONFIGURE"]
         Compiler.verbose = true
       end
     end
