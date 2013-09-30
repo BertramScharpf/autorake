@@ -2,8 +2,7 @@
 #  autorake.gemspec  --  Autorake Gem specification
 #
 
-$:.unshift "./lib"
-require "autorake/version"
+require "./lib/autorake/version"
 
 Gem::Specification.new do |s|
   s.name              = Autorake::NAME

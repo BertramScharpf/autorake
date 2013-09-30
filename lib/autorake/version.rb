@@ -5,7 +5,7 @@
 module Autorake
 
   NAME        = "autorake"
-  VERSION     = "2.0"
+  VERSION     = "2.0.1.a"
   SUMMARY     = "Configure project before Rake build or install."
 
   DESCRIPTION = <<EOT
