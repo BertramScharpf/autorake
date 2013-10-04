@@ -53,7 +53,9 @@ module Autorake
         task :uninstall do uninstall_targets end
         @autorake_install = []
       end
-      @autorake_install.push [ under, files, destdir, params]
+      p = {}
+      p.update params if params
+      @autorake_install.push [ under, files, destdir, p]
     end
 
     def load_autorake filename = nil
@@ -66,30 +68,40 @@ module Autorake
     def install_targets
       @autorake_install.each { |under,files,destdir,params|
         File.directory? destdir or mkdir_p destdir
-        files.each { |f| install under, f, destdir, params }
+        files.each { |f| install under, f, destdir, params, 0 }
       }
     end
 
     def uninstall_targets
-      @autorake_install.reverse.each { |under,files,destdir,|
-        files.each { |f| uninstall under, f, destdir }
+      @autorake_install.reverse.each { |under,files,destdir,params|
+        files.each { |f| uninstall under, f, destdir, params, 0 }
       }
     end
 
-    def paths_for_install under, src, dir
+    def paths_for_install under, src, dir, depth
       dst = File.join dir, src
       here = under ? (File.join under, src) : src
-      there, = File.split src
-      there = nil if there == "."
+      if depth.zero? then
+        there, = File.split src
+        there = nil if there == "."
+      end
       yield dst, here, there
     end
 
-    def install under, src, dir, ugm
-      paths_for_install under, src, dir do |dst,here,there|
-        install under, there, dir, ugm if there
+    def dir_entries dir
+      (Dir.entries dir) - %w(. ..)
+    end
+
+    def install under, src, dir, params, depth
+      paths_for_install under, src, dir, depth do |dst,here,there|
+        install under, there, dir, params, 0 if there
         if File.directory? here or not File.exists? here then
-          return if File.directory? dst
-          mkdir dst
+          mkdir dst unless File.directory? dst
+          if params[ :recursive] then
+            (dir_entries here).each { |e|
+              install under, (File.join src, e), dir, params, depth+1
+            }
+          end
         elsif File.symlink? here then
           rm dst if File.exists? dst
           rdl = File.readlink here
@@ -97,26 +109,35 @@ module Autorake
         else
           cp here, dst
         end
-        if ugm then
-          u, g = [ :user, :group].map { |x| y = ugm[ x] ; y unless y.empty? }
-          chown u, g, dst if u or g
-          m = ugm[ :mode]
-          if m and not m.empty? then
-            m = Integer m
-            chmod m, dst
-          end
-        end
+        u, g = params[ :user].split ":"
+        g = params[ :group] || g
+        chown u, g, dst if u or g
+        m = params[ :mode]
+        s = params[ :umask]
+        m ||= s && (File.stat dst).mode & ~s & 0777
+        chmod m, dst if m
       end
     end
 
-    def uninstall under, src, dir
-      paths_for_install under, src, dir do |dst,here,there|
-        if File.directory? here or not File.exists? here then
-          rmdir dst rescue return
+    def uninstall under, src, dir, params, depth
+      paths_for_install under, src, dir, depth do |dst,here,there|
+        if params[ :recursive] then
+          if File.directory? dst then
+            (dir_entries dst).each { |e|
+              uninstall under, (File.join src, e), dir, params, depth+1
+            }
+            rmdir dst
+          elsif File.exists? dst then
+            rm dst
+          end
         else
-          rm dst if File.exists? dst or File.symlink? dst
+          if File.directory? here or not File.exists? here then
+            rmdir dst if File.directory? dst
+          else
+            rm dst if File.exists? dst or File.symlink? dst
+          end
         end
-        uninstall under, there, dir if there
+        uninstall under, there, dir, params, 0 if there
       end
     end
 
