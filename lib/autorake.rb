@@ -109,8 +109,9 @@ module Autorake
         else
           cp here, dst
         end
-        u, g = params[ :user].split ":"
-        g = params[ :group] || g
+        u = params[ :user]
+        g = params[ :group]
+        u, g = u.split ":" if u and not g
         chown u, g, dst if u or g
         m = params[ :mode]
         s = params[ :umask]
