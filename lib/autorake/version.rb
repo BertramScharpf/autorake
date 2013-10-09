@@ -5,7 +5,7 @@
 module Autorake
 
   NAME        = "autorake"
-  VERSION     = "2.2.a"
+  VERSION     = "2.1.1"
   SUMMARY     = "Automake like project config before Rake build or install."
 
   DESCRIPTION = <<EOT
