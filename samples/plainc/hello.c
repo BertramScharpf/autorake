@@ -7,7 +7,7 @@
     #define SAY_IT
 #endif
 
-int main( int argc, char ** argv)
+int main( int argc, char **argv)
 {
 #ifdef SAY_IT
     printf( "Hello, world!\n");

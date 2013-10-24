@@ -77,7 +77,7 @@ module Autorake
     def initialize libdirs, libs, *args
       @libdirs = libdirs.map { |d| "-Wl,-L#{d}" }
       @libs = libs.map { |d| "-Wl,-l#{d}" }
-    @args = args
+      @args = args
       e = ENV[ "LDFLAGS"]
       @ldflags = e.split if e
     end
