@@ -28,7 +28,7 @@ module Autorake
     end
 
     def perform
-      Compiler.quiet = true
+      Builder.quiet = true
       c = Configuration.new @environment, @directories
       c.do_env
       c.features.update @features
@@ -197,7 +197,7 @@ module Autorake
       end
       print "yes"
       true
-    rescue Compiler::Error
+    rescue Builder::Error
       print "no"
       false
     ensure
@@ -214,7 +214,7 @@ module Autorake
       SRC
     end
     def compile t
-      c = CompilerPP.new @config.incdirs, @config.macros, "-w"
+      c = Preprocessor.new @config.incdirs, @config.macros, "-w"
       c.cc t.cpp, t.src
     end
     def set!
@@ -247,7 +247,7 @@ module Autorake
       SRC
     end
     def compile t
-      c = CompilerPP.new @config.incdirs, @config.macros, "-w"
+      c = Preprocessor.new @config.incdirs, @config.macros, "-w"
       c.cc t.cpp, t.src
     end
     def check!
@@ -267,7 +267,7 @@ void dummy( void)
       SRC
     end
     def compile t
-      c = CompilerC.new @config.incdirs, @config.macros, "-w"
+      c = Compiler.new @config.incdirs, @config.macros, "-w"
       c.cc t.obj, t.src
     end
     def set!
@@ -283,7 +283,7 @@ int main( int argc, char *argv[]) { return 0; }
       SRC
     end
     def compile t
-      c = CompilerC.new @config.incdirs, @config.macros, "-w"
+      c = Compiler.new @config.incdirs, @config.macros, "-w"
       c.cc t.obj, t.src
       l = Linker.new @config.libdirs, [ @name], "-w"
       l.cc t.bin, t.obj

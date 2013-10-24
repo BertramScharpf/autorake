@@ -12,7 +12,7 @@ module Autorake
     class <<self
       def extended obj
         obj.load_autorake ENV[ "AUTORAKE_CONFIGURE"]
-        Compiler.verbose = true
+        Builder.verbose = true
       end
     end
 
@@ -25,7 +25,7 @@ module Autorake
     end
 
     def compiler *args
-      CompilerC.new @autorake.incdirs, @autorake.macros, *args
+      Compiler.new @autorake.incdirs, @autorake.macros, *args
     end
 
     def linker *args

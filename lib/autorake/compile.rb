@@ -4,7 +4,7 @@
 
 module Autorake
 
-  class Compiler
+  class Builder
 
     class Error < StandardError ; end
 
@@ -13,30 +13,42 @@ module Autorake
     end
 
     def cc *a
+      command "CC", "cc" do build *a end
+    end
+
+    def cxx *a
+      command "CXX", "c++" do build *a end
+    end
+    alias cpp cxx
+
+    private
+
+    def command env, default
+      @cmd = ENV[ env] || default
+      yield
+    ensure
+      @cmd = nil
+    end
+
+    def build *a
       a.flatten!
       a.compact!
-      a.unshift ENV[ "CC"] || "cc"
-      message a
+      a.unshift @cmd
+      if Builder.verbose then
+        m = a.join " "
+        puts m
+      end
       f = fork do
-        $stderr.reopen "/dev/null" if Compiler.quiet
+        $stderr.reopen "/dev/null" if Builder.quiet
         exec *a
       end
       Process.waitpid f
       $?.success? or raise Error, "#{self.class} failed."
     end
 
-    private
-
-    def message a
-      if Compiler.verbose then
-        m = a.join " "
-        puts m
-      end
-    end
-
   end
 
-  class CompilerPP < Compiler
+  class Preprocessor < Builder
 
     def initialize incdirs, macros, *args
       @incdirs = incdirs.map { |d| "-I#{d}" }
@@ -51,7 +63,7 @@ module Autorake
       @cflags = e.split if e
     end
 
-    def cc obj, src
+    def build obj, src
       io = [ "-o", obj.to_s, "-c", src.to_s]
       super @cflags, @macros, @incdirs, @args, opt_E, io
     end
@@ -64,7 +76,7 @@ module Autorake
 
   end
 
-  class CompilerC < CompilerPP
+  class Compiler < Preprocessor
 
     private
 
@@ -72,7 +84,7 @@ module Autorake
 
   end
 
-  class Linker < Compiler
+  class Linker < Builder
 
     def initialize libdirs, libs, *args
       @libdirs = libdirs.map { |d| "-Wl,-L#{d}" }
@@ -82,7 +94,7 @@ module Autorake
       @ldflags = e.split if e
     end
 
-    def cc bin, *objs
+    def build bin, *objs
       io = [ "-o", bin.to_s, objs]
       super @ldflags, @libdirs, @libs, @args, io
     end
