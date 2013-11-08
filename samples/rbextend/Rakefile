@@ -11,7 +11,7 @@ rule ".o" => ".c" do |t|
   c.cc t.name, t.source
 end
 
-task "hello.so" => "hello.o" do |t|
+file "hello.so" => "hello.o" do |t|
   l.cc t.name, t.prerequisites
 end
 
