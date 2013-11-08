@@ -1,0 +1,37 @@
+#
+#  Rakefile  --  build library and executable
+#
+
+require "autorake"
+
+cl = compiler "-O2", "-fPIC"
+ll = linker "-shared"
+cs = compiler "-O2"
+ls = linker
+
+
+file "hello.o" => "hello.cpp" do |t|
+  cl.cpp t.name, *t.prerequisites
+end
+
+file "hello.so" => "hello.o" do |t|
+  ll.cpp t.name, t.prerequisites
+end
+
+
+rule ".o" => ".cpp" do |t|
+  cs.cpp t.name, t.source
+end
+
+file "main" => %w(main.o dl.o) do |t|
+  ls.cpp t.name, t.prerequisites
+end
+
+
+task :default => %w(main hello.so)
+
+
+task :clean do
+  FileList[ "*.o", "*.so", "main", "*.core"].each { |f| rm_f f }
+end
+

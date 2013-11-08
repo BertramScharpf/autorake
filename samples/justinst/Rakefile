@@ -1,5 +1,5 @@
 #
-#  Rakefile  --  build some libraries
+#  Rakefile  --  install the files
 #
 
 require "autorake"

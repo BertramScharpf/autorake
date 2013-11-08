@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+#
+#  mkrf_conf  --  configure Dlcpp
+#
+
+require "autorake/mkconfig"
+
+Autorake.configure {
+
+}
+
