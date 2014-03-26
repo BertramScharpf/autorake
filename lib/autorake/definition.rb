@@ -98,10 +98,11 @@ module Autorake
       @checks.push c
     end
 
-    def have_func name
+    def have_function name
       c = CheckFunction.new @current, name
       @checks.push c
     end
+    alias have_func have_function
 
     def have_library name
       c = CheckLibrary.new @current, name
