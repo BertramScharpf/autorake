@@ -28,19 +28,26 @@ Gem::Specification.new do |s|
                           lib/autorake/mkconfig.rb
                           lib/autorake/version.rb
 
-                          samples/plainc/Rakefile
-                          samples/plainc/mkrf_conf
-                          samples/plainc/hello.c
-                          samples/rbextend/Rakefile
-                          samples/rbextend/mkrf_conf
-                          samples/rbextend/hello.c
-                          samples/rbextend/hello.h
-                          samples/rbextend/rbhello
-                          samples/justinst/Rakefile
-                          samples/justinst/mkrf_conf
-                          samples/justinst/plugin/dial.vim
-                          samples/justinst/plugin/ruby.vim
-                          samples/justinst/plugin/yesno.vim
+                          examples/dlcpp/Rakefile
+                          examples/dlcpp/mkrf_conf
+                          examples/dlcpp/dl.cpp
+                          examples/dlcpp/dl.h
+                          examples/dlcpp/hello.cpp
+                          examples/dlcpp/hello.h
+                          examples/dlcpp/main.cpp
+                          examples/justinst/Rakefile
+                          examples/justinst/mkrf_conf
+                          examples/justinst/plugin/dial.vim
+                          examples/justinst/plugin/ruby.vim
+                          examples/justinst/plugin/yesno.vim
+                          examples/plainc/Rakefile
+                          examples/plainc/mkrf_conf
+                          examples/plainc/hello.c
+                          examples/rbextend/Rakefile
+                          examples/rbextend/mkrf_conf
+                          examples/rbextend/hello.c
+                          examples/rbextend/hello.h
+                          examples/rbextend/rbhello
                         )
   s.executables       = %w()
 
