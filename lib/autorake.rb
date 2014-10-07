@@ -145,7 +145,7 @@ module Autorake
             rm dst
           end
         else
-          if File.directory? here or not File.exists? here then
+          if File.directory? here then
             rmdir dst if File.directory? dst
           else
             rm dst if File.exists? dst or File.symlink? dst
