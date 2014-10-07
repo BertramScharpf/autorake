@@ -42,12 +42,10 @@ module Autorake
 
     def expand dir
       case dir
-        when /\A[A-Z_]+/ then
-          (expand self[ $&.downcase]) + $'
-        when /\A:(\w+)/ then
-          (expand self[ $1]) + $'
-        else
-          dir
+        when /\A[A-Z_]+/ then (expand self[ $&.downcase]) + $'
+        when /\A:(\w+)/  then (expand self[ $1         ]) + $'
+        when /\A~/       then File.expand_path dir
+        else                  dir
       end
     end
 
