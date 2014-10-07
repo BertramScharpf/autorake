@@ -16,12 +16,25 @@ module Autorake
       end
     end
 
+    def method_missing sym, *args, &block
+      case sym
+        when /\Ahas_(.*?)\??\z/ then has? $1
+        when /\Aparm_/          then parm[ $'.to_sym]
+        when /\Aexpand_/        then expand $'.upcase
+        else                         super
+      end
+    end
+
     def has? name
-      @autorake.features[ name]
+      @autorake.features[ name.to_sym]
     end
 
     def parm
       @autorake.parameters
+    end
+
+    def expand dir
+      @autorake.directories.expand dir
     end
 
     def compiler *args
