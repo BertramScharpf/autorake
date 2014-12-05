@@ -135,21 +135,15 @@ module Autorake
 
     def uninstall under, src, dir, params, depth
       paths_for_install under, src, dir, depth do |dst,here,there|
-        if params[ :recursive] then
-          if File.directory? dst then
+        if File.directory? dst then
+          if params[ :recursive] then
             (dir_entries dst).each { |e|
               uninstall under, (File.join src, e), dir, params, depth+1
             }
-            rmdir dst
-          elsif File.exists? dst then
-            rm dst
           end
-        else
-          if File.directory? here then
-            rmdir dst if File.directory? dst
-          else
-            rm dst if File.exists? dst or File.symlink? dst
-          end
+          rmdir dst
+        elsif File.exists? dst then
+          rm dst
         end
         uninstall under, there, dir, params, 0 if there
       end
