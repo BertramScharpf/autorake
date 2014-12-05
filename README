@@ -6,7 +6,7 @@ License: BSD
 
 This project wants to be to Rake what Autocmd is to Make.
 
-Have a look at the self-explaining samples directory.
+Have a look at the self-explaining examples directory.
 
 The script mkrf_conf will build a file .configure that contains
 the whole configuration information. The Rakefile will read it in
