@@ -142,7 +142,7 @@ module Autorake
             }
           end
           rmdir dst
-        elsif File.exists? dst then
+        elsif File.exists? dst or File.symlink? dst then
           rm dst
         end
         uninstall under, there, dir, params, 0 if there
