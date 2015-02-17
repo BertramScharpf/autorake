@@ -22,9 +22,14 @@ if has? :dial then
   )
 end
 
-ug = { :user => parm[ :user], :group => parm[ :group] }
+if Process.uid == 0 then
+  ug = { :user => parm[ :user], :group => parm[ :group] }
+end
 
-installer "vimfiles", "VIM"
+task :install do
+  dst = expand "VIMFILES"
+  puts "Installing files to '#{dst}'."
+end
 
 installer vims, "VIMFILES", ug
 
