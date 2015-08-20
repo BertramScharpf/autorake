@@ -64,7 +64,7 @@ module Autorake
       feature name, false, &block
     end
 
-    def with   name, val ; argdef :par, name, val ; end
+    def with name, val = nil ; argdef :par, name, val ; end
 
     def incdir name, dir ; argdef :inc, name, dir ; end
     def libdir name, dir ; argdef :lib, name, dir ; end
@@ -109,10 +109,7 @@ module Autorake
     private
 
     def argdef type, name, val
-      return unless val
-      val = val.to_s
-      val.chomp!
-      return if val.empty?
+      String === val and val.chomp!
       name = "#@current/#{name}" if @current
       @args[ type][ name.to_sym] = val
     end
@@ -165,14 +162,15 @@ module Autorake
       @val = val
     end
     private
-    def expanded
-      @config.directories.expand @val
+    def expanded v = nil
+      @config.directories.expand v||@val
     end
   end
   class AddMacro < AddKeyVal
     def set!
-      @config.parameters[ @name] = @val
-      @config.macros[ "WITH_#{name_upcase}"] = @val
+      v = @val || (expanded @name.to_s.upcase)
+      @config.parameters[ @name] = v
+      @config.macros[ "WITH_#{name_upcase}"] = v
     end
   end
   class AddIncdir < AddKeyVal

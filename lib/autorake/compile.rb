@@ -55,7 +55,7 @@ module Autorake
       @macros = macros.map { |k,v|
         next unless v
         m = "-D#{k}"
-        m << "=#{v}" if String === v
+        m << "=#{v.to_s.inspect}" unless v == true
         m
       }
       @args = args
