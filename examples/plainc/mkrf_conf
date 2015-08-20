@@ -8,13 +8,42 @@ require "autorake/mkconfig"
 
 Autorake.configure {
 
-  have_header "stdio.h"
+  # Normal header and library lookup
+  have_header "stdio.h"     # Look if there is a header of this name.
+  have_library "curses"     # Look for library
 
-  disable :now do
-    with :foo, "dummy"
-    # incdir :bar, "/path/to/bar"
-    # libdir :baz, "/path/to/baz"
+  # We #include from there.
+  incdir :bar, "INCLUDE/anotherproject"
+  # We bind in libraries from there
+  libdir :baz, "LIB/anotherproject"
+
+
+  # HAVE_HEADER_NONEXISTENT_H will never be set.
+  have_header "nonexistent.h"
+
+
+  have_macro "__STDC__"  # This cannot go wrong.
+
+
+  disable :weirdfeature do
+    # Call it as "./mkrf_conf --enable-weirdfeature" to let it fail.
+    have_library "nonexistent"
   end
+
+
+  # Look at macro FEATURE_NOW (twice) in "hello.c" to see what this does.
+  disable :now do
+    with :foo, 'dummy'
+  end
+
+  # The variable will be an integer in "Rakefile" but a string in C code.
+  with :other, 234
+
+
+  # Define a directory and make is accessible through a -D macro.
+  directory :myproj, "DATA/myproj"
+  with :myproj
+  with :sysconf
 
 }
 

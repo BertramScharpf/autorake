@@ -1,0 +1,27 @@
+= Autorake example project
+
+== How to use this
+
+1. Call
+
+  $ ./mkrf_conf --help
+
+Decide which options to change
+
+2. Call
+
+  $ ./mkrf_conf
+
+This generates a file ".configure" which
+contains data in YAML format.
+
+3. Call
+
+  $ rake
+
+4. Call
+
+  $ ./hello
+
+The output depends on what you configured.
+
