@@ -38,17 +38,21 @@ module Autorake
           case arg
             when /\A--/ then
               a, val = $'.split "=", 2
-              do_option a do val end
+              do_option a do val || $*.shift end
             when /\A-/ then
               arg = $'
               until (a = arg.slice! 0, 1).empty? do
                 do_option a do
-                  arg.slice! 0, arg.length unless arg.empty?
+                  unless arg.empty? then
+                    arg.slice! 0, arg.length
+                  else
+                    $*.shift
+                  end
                 end
               end
             else
               n, v = arg.split "="
-              environ n, v
+              environ n, v||"1"
           end
         end
       end
@@ -93,8 +97,7 @@ module Autorake
       o or raise "Unknown option: #{a}"
       c = o.call
       if o.arg then
-        g = yield || $*.shift
-        c.push g
+        c.push yield
       end
       send *c
       @rest.delete o

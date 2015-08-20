@@ -70,7 +70,11 @@ module Autorake
     end
 
     def set_parm name, val
-      @definition.parameters[ name.to_sym] = val
+      n = name.to_sym
+      if Numeric === @definition.parameters[ n] and val =~ /\A(0x)?\d+\z/ then
+        val = Integer val
+      end
+      @definition.parameters[ n] = val
     end
 
     def set_incdir name, val

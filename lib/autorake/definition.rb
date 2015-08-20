@@ -123,14 +123,16 @@ module Autorake
     end
     def perform config
       @config = config
-      check! and set!
+      relevant? and check! and set!
     ensure
       @config = nil
     end
     private
+    def relevant?
+      not @feature or @config.features[ @feature]
+    end
     def check!
-      not @feature or
-        @config.features[ @feature]
+      true
     end
     def set!
     end
