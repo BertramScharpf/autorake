@@ -29,11 +29,11 @@ module Autorake
     end
 
     def [] key
-      super key.to_sym
+      super key.to_sym.downcase
     end
 
     def []= key, value
-      super key.to_sym, value
+      super key.to_sym.downcase, value
     end
 
     def expanded key

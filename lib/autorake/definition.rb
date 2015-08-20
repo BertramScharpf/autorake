@@ -32,8 +32,8 @@ module Autorake
       c = Configuration.new @environment, @directories
       c.do_env
       c.features.update @features
-      c.incdirs.push std_incdir
-      c.libdirs.push std_libdir
+      d = @directories.expand "INCLUDE" ; c.incdirs.push d
+      d = @directories.expand "LIB"     ; c.libdirs.push d
       af = @features.keys.map { |k| AddFeature.new k }
       am = @args[ :par].map { |k,v| AddMacro.new k, v }
       ai = @args[ :inc].map { |k,v| AddIncdir.new k, v }
@@ -44,11 +44,8 @@ module Autorake
 
     protected
 
-    def std_incdir ; @directories.expand "INCLUDE" ; end
-    def std_libdir ; @directories.expand "LIB"     ; end
-
     def directory name, dir
-      @directories[ name]= dir
+      @directories[ name] = dir
     end
 
     def feature name, enabled = nil
@@ -111,12 +108,13 @@ module Autorake
 
     private
 
-    def argdef type, name, dir
-      return unless dir
-      dir.chomp!
-      return if dir.empty?
+    def argdef type, name, val
+      return unless val
+      val = val.to_s
+      val.chomp!
+      return if val.empty?
       name = "#@current/#{name}" if @current
-      @args[ type][ name.to_sym] = dir
+      @args[ type][ name.to_sym] = val
     end
 
   end
