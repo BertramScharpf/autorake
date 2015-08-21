@@ -8,17 +8,27 @@ require "autorake/application"
 module Autorake
 
   class <<self
+
     def configure &block
       d = Definitions.new
       d.instance_eval &block
-      p = MkConfig.new d
+      p = MkConfig.mkconfig.new d
       p.run
       nil
     end
+
   end
 
 
   class MkConfig < Application
+
+    @mkconfig = self
+    class <<self
+      attr_reader :mkconfig
+      def inherited cls
+        @mkconfig = cls
+      end
+    end
 
     attr_accessor :outfile
     attr_bang :clean, :verbose
@@ -35,7 +45,7 @@ module Autorake
       add_option %w(c clean),   "delete config file resp. -o outfile",
                                                         nil, :clean!
       add_option %w(d dump),    "just dump the results", nil, :dump
-      add_option %w(v verbose), "lots of ubly debugging information",
+      add_option %w(v verbose), "lots of ugly debugging information",
                                                         nil, :verbose!
       super
       @definition.directories.each { |k,v|
@@ -97,12 +107,22 @@ module Autorake
     def execute
       if @clean then
         File.unlink @outfile if File.file? @outfile
+        cleaned
       else
         cfg = @definition.perform
         File.open @outfile, "w" do |f|
           f.write cfg.to_yaml
         end
+        made
       end
+    end
+
+    # overwrite this to do additional work
+    def made
+    end
+
+    # overwrite this to do additional work
+    def cleaned
     end
 
   end
