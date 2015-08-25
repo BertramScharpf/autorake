@@ -2,18 +2,30 @@
 #  Rakefile  --  build executable
 #
 
+# A simple require statement loads the ".configure" file.
 require "autorake"
 
-c = compiler "-O2"
-l = linker
 
+# The commands we will call
+#
+c = compiler "-O2"        # compile command
+d = compiler "-dM", "-E"  # dump #define macros
+l = linker                # link command
+#
+# Options for -D macros, for include and library directories
+# will be added automatically.
+
+
+# compile rule uses the compile command
 rule ".o" => ".c" do |t|
   c.cc t.name, t.source
 end
 
+# link target uses the link command
 file "hello" => "hello.o" do |t|
   l.cc t.name, t.prerequisites
 end
+
 
 task :default => "hello"
 
@@ -21,7 +33,15 @@ task :clean do
   FileList[ "*.o", "hello"].each { |f| rm_f f }
 end
 
-task :foo do
-  puts "Parameter foo is: %s." % parm[ :foo]
+
+# just show the parameters from ./mkrf_conf
+task :parameters do
+  puts "Parameter `foo' is: `%s'." % parm[ :foo]
+  puts "Parameter `other' is: `%s'." % parm[ :other]
+end
+
+# this task dumps the #define macros to stdout
+task :dump do
+  d.cc "/dev/stdout", "hello.c"
 end
 

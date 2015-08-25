@@ -1,0 +1,23 @@
+#
+#  Rakefile  --  build executable
+#
+
+require "autorake"
+
+c = compiler "-O2"
+l = linker
+
+rule ".o" => ".c" do |t|
+  c.cc t.name, t.source
+end
+
+file "main" => "main.o" do |t|
+  l.cc t.name, t.prerequisites
+end
+
+task :default => "main"
+
+task :clean do
+  FileList[ "*.o", "main"].each { |f| rm_f f }
+end
+

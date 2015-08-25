@@ -32,8 +32,8 @@ module Autorake
       c = Configuration.new @environment, @directories
       c.do_env
       c.features.update @features
-      c.incdirs.push std_incdir
-      c.libdirs.push std_libdir
+      d = @directories.expand "INCLUDE" ; c.incdirs.push d
+      d = @directories.expand "LIB"     ; c.libdirs.push d
       af = @features.keys.map { |k| AddFeature.new k }
       am = @args[ :par].map { |k,v| AddMacro.new k, v }
       ai = @args[ :inc].map { |k,v| AddIncdir.new k, v }
@@ -44,11 +44,8 @@ module Autorake
 
     protected
 
-    def std_incdir ; @directories.expand "INCLUDE" ; end
-    def std_libdir ; @directories.expand "LIB"     ; end
-
     def directory name, dir
-      @directories[ name]= dir
+      @directories[ name] = dir
     end
 
     def feature name, enabled = nil
@@ -67,7 +64,7 @@ module Autorake
       feature name, false, &block
     end
 
-    def with   name, val ; argdef :par, name, val ; end
+    def with name, val = nil ; argdef :par, name, val ; end
 
     def incdir name, dir ; argdef :inc, name, dir ; end
     def libdir name, dir ; argdef :lib, name, dir ; end
@@ -111,12 +108,10 @@ module Autorake
 
     private
 
-    def argdef type, name, dir
-      return unless dir
-      dir.chomp!
-      return if dir.empty?
+    def argdef type, name, val
+      String === val and val.chomp!
       name = "#@current/#{name}" if @current
-      @args[ type][ name.to_sym] = dir
+      @args[ type][ name.to_sym] = val
     end
 
   end
@@ -128,14 +123,16 @@ module Autorake
     end
     def perform config
       @config = config
-      check! and set!
+      relevant? and check! and set!
     ensure
       @config = nil
     end
     private
+    def relevant?
+      not @feature or @config.features[ @feature]
+    end
     def check!
-      not @feature or
-        @config.features[ @feature]
+      true
     end
     def set!
     end
@@ -167,14 +164,15 @@ module Autorake
       @val = val
     end
     private
-    def expanded
-      @config.directories.expand @val
+    def expanded v = nil
+      @config.directories.expand v||@val
     end
   end
   class AddMacro < AddKeyVal
     def set!
-      @config.parameters[ @name] = @val
-      @config.macros[ "WITH_#{name_upcase}"] = @val
+      v = @val || (expanded @name.to_s.upcase)
+      @config.parameters[ @name] = v
+      @config.macros[ "WITH_#{name_upcase}"] = v
     end
   end
   class AddIncdir < AddKeyVal
