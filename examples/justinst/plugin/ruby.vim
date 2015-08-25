@@ -12,42 +12,42 @@ function s:Ruby() range
       append "#!! #$! (#{$!.class})"
     end
 .
-endfunc
+endfunction
 
 function s:RubySum() range
   " Build sum of expressions.
   " Everything before :(colon) and after #(hash) is treated as a comment.
   exec a:lastline
-  ruby <<
-    begin
-      $kfm = true
-      _ = eval VIM.evaluate("getline(a:firstline,a:lastline)").map { |l|
-          VIM.numbers_of l
-        }.join( " + ")
-      append "-"*32, ($kfm ? "%.2f" % _ : _.to_s)
-    rescue Exception
-      append "-"*32, "#!! #$! (#{$!.class})"
-    end
+ruby <<
+  begin
+    VIM.kfm = true
+    _ = eval VIM.evaluate("getline(a:firstline,a:lastline)").map { |l|
+      VIM.numbers_of l
+    }.join( " + ")
+    append "-"*32, (VIM.ntos _)
+  rescue Exception
+    append "-"*32, "#!! #$! (#{$!.class})"
+  end
 .
-endfunc
+endfunction
 
 function s:RubySums() range
 ruby <<
   f, l = VIM.evaluate("a:firstline").to_i, VIM.evaluate("a:lastline").to_i
   c = VIM::Buffer.current
   _ = 0
-  $kfm = true
+  VIM.kfm = true
   f.upto l do |i|
     begin
       _ += eval VIM.numbers_of( c[i])
-      c[i] += "  #=> " + ($kfm ? "%.2f" % _ : _.to_s)
+      c[i] += "  #=> " + (VIM.ntos _)
     rescue Exception
       c[i] += "  #!! #$! (#{$!.class})"
       break
     end
   end
 .
-endfunc
+endfunction
 
 
 ruby <<
@@ -55,17 +55,21 @@ ruby <<
 
   module VIM
     class <<self
+      attr_accessor :kfm  # Kaufmännische Zahlen
       def numbers_of line
         line.chomp!
-        line.gsub! /^.*?[:=]/, ""
         line.gsub! /#.*?$/, ""
+        line.gsub! /^.*?[:=]/, ""
         line.gsub! /\d(\.\d{3})+,\d/ do |x|
           x.delete "."
         end
         line.gsub! /(\d+,)-/, "\\100"
         line.gsub! /(\d+),(\d+)(-)?/, "\\3\\1.\\2"
-        $kfm &&= line !~ /(^|[^0-9.])\d+(\.(\d|\d{3,}))?([^0-9.]|$)/
+        @kfm &&= line !~ /(^|[^0-9.])\d+(\.(\d|\d{3,}))?([^0-9.]|$)/
         line =~ /\S/ ? line : "0"
+      end
+      def ntos n
+        @kfm ? "%.2f" % n : n.to_s
       end
     end
   end
