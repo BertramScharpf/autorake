@@ -78,7 +78,9 @@ module Autorake
       else
         h = RbConfig::CONFIG[ "rubyhdrdir"]
         incdir :ruby, h
-        incdir :ruby_arch, (File.join h, RbConfig::CONFIG[ "arch"])
+        incdir :ruby_arch, RbConfig::CONFIG.fetch("rubyarchhdrdir") do
+          File.join h, RbConfig::CONFIG[ "arch"]
+        end
         #incdir :ruby_backward, (File.join h, "ruby/backward")
       end
       libdir :ruby, RbConfig::CONFIG[ "libdir"]
