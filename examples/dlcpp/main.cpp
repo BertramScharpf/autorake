@@ -5,7 +5,7 @@
 #include "dl.h"
 #include <iostream>
 
-int main( int argc, const char *argv)
+int main( int argc, const char **argv)
 {
     try {
         Dl dl( "./hello.so");
