@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.homepage          = Autorake::HOMEPAGE
 
   s.requirements      = "Rake"
-  s.add_dependency      "rake", "~>11"
+  s.add_dependency      "rake", ">=11"
 
   s.files             = %w(
                           lib/autorake.rb
