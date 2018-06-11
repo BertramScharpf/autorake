@@ -14,7 +14,7 @@ module Autorake
       :sbin        => "EPREFIX/sbin",
       :libexec     => "EPREFIX/libexec",
       :sysconf     => "CPREFIX/etc",
-      :localstate  => "/var",
+      :localstate  => "CPREFIX/var",
       :lib         => "EPREFIX/lib",
       :include     => "PREFIX/include",
       :data        => "PREFIX/share",
