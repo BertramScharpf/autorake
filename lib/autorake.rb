@@ -145,7 +145,9 @@ module Autorake
         elsif File.exists? dst or File.symlink? dst then
           rm dst
         end
-        uninstall under, there, dir, params, 0 if there
+        if there and (dir_entries there).empty? then
+          uninstall under, there, dir, params, 0
+        end
       end
     end
 

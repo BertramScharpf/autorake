@@ -5,7 +5,7 @@
 module Autorake
 
   NAME        = "autorake"
-  VERSION     = "2.8".freeze
+  VERSION     = "2.8.1".freeze
   SUMMARY     = "Automake like project config before Rake build or install."
 
   DESCRIPTION = <<EOT
@@ -15,7 +15,7 @@ with autocmd-like functionality.
 The config scripts may be held short and readable.
 EOT
 
-  COPYRIGHT   = "(C) 2009-2018 Bertram Scharpf"
+  COPYRIGHT   = "(C) 2009-2019 Bertram Scharpf"
   LICENSE     = "BSD-2-Clause"
   AUTHOR      = "Bertram Scharpf <software@bertram-scharpf.de>"
   TEAM        = [ "Bertram Scharpf"]
