@@ -5,7 +5,7 @@
 module Autorake
 
   NAME        = "autorake"
-  VERSION     = "2.8.1".freeze
+  VERSION     = "2.9".freeze
   SUMMARY     = "Automake like project config before Rake build or install."
 
   DESCRIPTION = <<EOT
