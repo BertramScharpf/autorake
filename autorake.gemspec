@@ -51,7 +51,6 @@ Gem::Specification.new do |s|
                         )
   s.executables       = %w()
 
-  s.has_rdoc          = true
   s.rdoc_options.concat %w(--charset utf-8 --main README)
   s.extra_rdoc_files  = %w(
                           README
