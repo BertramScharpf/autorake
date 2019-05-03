@@ -57,9 +57,10 @@ module Autorake
         d = File.expand_path d
         destdir = File.join d, destdir
       end
-      files = case files
-        when Array then files
-        else            [ files]
+      case files
+        when Array then
+        when nil   then files = []
+        else            files = [ files]
       end
       unless @autorake_install then
         task :install   do install_targets   end
@@ -88,6 +89,8 @@ module Autorake
     def uninstall_targets
       @autorake_install.reverse.each { |under,files,destdir,params|
         files.each { |f| uninstall under, f, destdir, params, 0 }
+        File.directory? destdir and (dir_entries destdir).empty? and
+          rmdir destdir
       }
     end
 
