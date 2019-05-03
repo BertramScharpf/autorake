@@ -33,8 +33,8 @@ module Autorake
       @autorake.parameters
     end
 
-    def expand dir
-      @autorake.directories.expand dir
+    def expand dir, file = nil
+      @autorake.directories.expand dir, file
     end
 
     def compiler *args
@@ -51,7 +51,7 @@ module Autorake
         when nil, Hash then
           under, files, destdir, params = nil, under, files, destdir
       end
-      destdir = @autorake.directories.expand destdir
+      destdir = expand destdir
       d = ENV[ "DESTDIR"]
       if d then
         d = File.expand_path d

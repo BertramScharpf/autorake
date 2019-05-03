@@ -40,12 +40,18 @@ module Autorake
       expand self[ key]
     end
 
-    def expand dir
-      case dir
-        when /\A[A-Z_]+/ then (expand self[ $&.downcase]) + $'
-        when /\A:(\w+)/  then (expand self[ $1         ]) + $'
-        when /\A~/       then File.expand_path dir
-        else                  dir
+    def expand dir, file = nil
+      if file then
+        dir = expand dir
+        File.join dir, file
+      else
+        case dir
+          when /\A[A-Z_0-9]+/ then (expand self[ $&.downcase]) + $'
+          when /\A:(\w+)/     then (expand self[ $1         ]) + $'
+          when /\A!/          then `#$'`[ /.*/]
+          when /\A~/          then File.expand_path dir
+          else                     dir
+        end
       end
     end
 
