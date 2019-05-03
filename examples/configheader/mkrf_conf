@@ -10,39 +10,42 @@ require "autorake/mkconfig"
 # This example transports parameters into the C code of the project
 # by writing a special config header containing #defines.
 #
-# A more convenient way to do such things is using hte "with" mode
+# A more convenient way to do such things is using the "with" mode
 # for directories as shown in other examples. But if you prefer this
 # method you can also do so.
 
 
-class MkConfigHeader < Autorake::MkConfig
+module Autorake
 
-  HEADER = "config.h"
+  class MkConfigHeader < MkConfig
 
-  CONSTANTS = %w(MYPROJ)
+    HEADER = "config.h"
 
-  def made
-    require "autorake"
-    extend Autorake::Rakefile   # This defines the "expand" method used below.
-    File.open HEADER, "w" do |f|
-      CONSTANTS.each { |c|
-        e = expand c
-        f.puts '#define DIR_%s "%s"' % [c, e]
-      }
+    CONSTANTS = %w(MYPROJ)
+
+    def made
+      require "autorake"
+      extend Autorake::Rakefile   # This defines the "expand" method used below.
+      File.open HEADER, "w" do |f|
+        CONSTANTS.each { |c|
+          e = expand c
+          f.puts '#define DIR_%s "%s"' % [c, e]
+        }
+      end
     end
+
+    def cleaned
+      File.unlink HEADER if File.file? HEADER
+    end
+
   end
 
-  def cleaned
-    File.unlink HEADER if File.file? HEADER
-  end
+
+  configure {
+
+    directory :myproj, "PREFIX/myproj"
+
+  }
 
 end
-
-
-
-Autorake.configure {
-
-  directory :myproj, "PREFIX/myproj"
-
-}
 
