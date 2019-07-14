@@ -6,7 +6,6 @@ require "./lib/autorake/version"
 
 Gem::Specification.new do |s|
   s.name              = Autorake::NAME
-  s.rubyforge_project = "NONE"
   s.version           = Autorake::VERSION
   s.summary           = Autorake::SUMMARY
   s.description       = Autorake::DESCRIPTION
