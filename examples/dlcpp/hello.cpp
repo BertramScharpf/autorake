@@ -6,12 +6,12 @@
 
 #include <iostream>
 
-void hello_init(void)
+void hello_init( void)
 {
     std::cout << "hello loaded" << '\n';
 }
 
-void hello_fini(void)
+void hello_fini( void)
 {
     std::cout << "hello before unload" << '\n';
 }
