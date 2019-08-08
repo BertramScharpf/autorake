@@ -2,7 +2,7 @@
 "  phone.vim  --  Handle phone numbers
 "
 
-" call external program `waehl'
+" call external program `dial'
 func Dial( ...)
   let s="[-+./()0-9 ]*"
   let nr=matchstr( getline("."), "\\<".s."\\%".col(".")."c".s."\\>")
