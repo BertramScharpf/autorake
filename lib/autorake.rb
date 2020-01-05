@@ -5,13 +5,23 @@
 require "autorake/configure"
 require "autorake/compile"
 
+
+class Nil
+  method_defined? :notempty? or def notempty? ; end
+end
+
+class String
+  method_defined? :notempty? or def notempty? ; length.nonzero? and self ; end
+end
+
+
 module Autorake
 
   module Rakefile
 
     class <<self
       def extended obj
-        obj.load_autorake ENV[ "AUTORAKE_CONFIGURE"]
+        obj.load_autorake ENV[ "AUTORAKE_CONFIGURE"].notempty?
         Builder.verbose = true
       end
     end
