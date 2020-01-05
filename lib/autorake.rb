@@ -6,7 +6,7 @@ require "autorake/configure"
 require "autorake/compile"
 
 
-class Nil
+class NilClass
   method_defined? :notempty? or def notempty? ; end
 end
 
