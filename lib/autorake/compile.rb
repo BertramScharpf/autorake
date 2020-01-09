@@ -65,7 +65,7 @@ module Autorake
 
     def build obj, src
       io = [ "-o", obj.to_s, "-c", src.to_s]
-      super @cflags, @macros, @incdirs, @args, opt_E, io
+      super @cflags, @args, @macros, @incdirs, opt_E, io
     end
 
     private
@@ -96,7 +96,7 @@ module Autorake
 
     def build bin, *objs
       io = [ "-o", bin.to_s, objs]
-      super @ldflags, @libdirs, @libs, @args, io
+      super @args, @ldflags, io, @libdirs, @libs
     end
 
   end
