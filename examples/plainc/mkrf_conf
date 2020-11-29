@@ -6,6 +6,9 @@
 
 require "autorake/mkconfig"
 
+Autorake::Builder.verbose = :keep
+
+
 Autorake.configure {
 
   # Normal header and library lookup

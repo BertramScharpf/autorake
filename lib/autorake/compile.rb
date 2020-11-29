@@ -35,18 +35,69 @@ module Autorake
       a.compact!
       a.unshift @cmd
       if Builder.verbose then
-        m = a.join " "
-        puts m
+        puts
+        puts a.join " "
       end
       f = fork do
-        $stderr.reopen "/dev/null" if Builder.quiet
+        $stderr.reopen "/dev/null" if Builder.quiet and not Builder.verbose
         exec *a
       end
       Process.waitpid f
+      print "..." if Builder.verbose
       $?.success? or raise Error, "#{self.class} failed."
     end
 
+
+    class <<self
+      def tmpfiles source
+        TmpFiles.open source, @verbose==:keep do |t|
+          yield t
+        end
+      end
+    end
+
+    class TmpFiles
+
+      class <<self
+        def open source, keep = nil
+          i = new source
+          yield i
+        ensure
+          i.cleanup unless keep
+        end
+        private :new
+      end
+
+      attr_reader :src
+
+      def initialize source
+        @plain = "autorake-tmp-0001"
+        begin
+          @src = "#@plain.c"
+          File.open @src, File::WRONLY|File::CREAT|File::EXCL do |c|
+            c.puts source
+          end
+        rescue Errno::EEXIST
+          @plain.succ!
+          retry
+        end
+      end
+
+      def cpp ; @cpp = "#@plain.cpp" ; end
+      def obj ; @obj = "#@plain.o"   ; end
+      def bin ; @bin = "#@plain"     ; end
+
+      def cleanup
+        File.delete @bin if @bin and File.exists? @bin
+        File.delete @obj if @obj and File.exists? @obj
+        File.delete @cpp if @cpp and File.exists? @cpp
+        File.delete @src
+      end
+
+    end
+
   end
+
 
   class Preprocessor < Builder
 
@@ -97,47 +148,6 @@ module Autorake
     def build bin, *objs
       io = [ "-o", bin.to_s, objs]
       super @args, @ldflags, io, @libdirs, @libs
-    end
-
-  end
-
-
-  class TmpFiles
-
-    class <<self
-      def open source
-        i = new source
-        yield i
-      ensure
-        i.cleanup
-      end
-      private :new
-    end
-
-    attr_reader :src
-
-    def initialize source
-      @plain = "tmp-0001"
-      begin
-        @src = "#@plain.c"
-        File.open @src, File::WRONLY|File::CREAT|File::EXCL do |c|
-          c.puts source
-        end
-      rescue Errno::EEXIST
-        @plain.succ!
-        retry
-      end
-    end
-
-    def cpp ; @cpp = "#@plain.cpp" ; end
-    def obj ; @obj = "#@plain.o"   ; end
-    def bin ; @bin = "#@plain"     ; end
-
-    def cleanup
-      File.delete @bin if @bin and File.exists? @bin
-      File.delete @obj if @obj and File.exists? @obj
-      File.delete @cpp if @cpp and File.exists? @cpp
-      File.delete @src
     end
 
   end

@@ -193,7 +193,7 @@ module Autorake
     def check!
       super or return
       print "Checking for #{self.class::TYPE} #@name ... "
-      res = TmpFiles.open build_source do |t|
+      res = Builder.tmpfiles build_source do |t|
         compile t
       end
       print "yes"
