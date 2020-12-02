@@ -124,13 +124,13 @@ module Autorake
 
     def version
       require "autorake/version"
-      puts <<-EOT
-#{NAME} #{VERSION}  --  #{SUMMARY}
+      puts <<~EOT
+        #{NAME} #{VERSION}  --  #{SUMMARY}
 
-Copyright: #{COPYRIGHT}
-License:   #{LICENSE}
+        Copyright: #{COPYRIGHT}
+        License:   #{LICENSE}
 
-#{HOMEPAGE}
+        #{HOMEPAGE}
       EOT
       raise Done
     end

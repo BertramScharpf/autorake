@@ -210,8 +210,8 @@ module Autorake
     TYPE = "header"
     private
     def build_source
-      <<-SRC
-#include <#@name>
+      <<~SRC
+        #include <#@name>
       SRC
     end
     def compile t
@@ -229,8 +229,8 @@ module Autorake
     def build_source
       src = ""
       @config.headers.each { |i|
-        src << <<-SRC
-#include <#{i}>
+        src << <<~SRC
+          #include <#{i}>
         SRC
       }
       src
@@ -241,10 +241,10 @@ module Autorake
     TYPE = "macro"
     private
     def build_source
-      super << <<-SRC
-#ifndef #@name
-#error not defined
-#endif
+      super << <<~SRC
+        #ifndef #@name
+        #error not defined
+        #endif
       SRC
     end
     def compile t
@@ -260,11 +260,11 @@ module Autorake
     TYPE = "function"
     private
     def build_source
-      super << <<-SRC
-void dummy( void)
-{
-  void (*f)( void) = (void (*)( void)) #@name;
-}
+      super << <<~SRC
+        void dummy( void)
+        {
+          void (*f)( void) = (void (*)( void)) #@name;
+        }
       SRC
     end
     def compile t
@@ -279,8 +279,8 @@ void dummy( void)
   class CheckLibrary < Check
     TYPE = "library"
     def build_source
-      <<-SRC
-int main( int argc, char *argv[]) { return 0; }
+      <<~SRC
+        int main( int argc, char *argv[]) { return 0; }
       SRC
     end
     def compile t

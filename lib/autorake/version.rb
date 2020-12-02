@@ -8,12 +8,12 @@ module Autorake
   VERSION     = "2.14".freeze
   SUMMARY     = "Automake like project config before Rake build or install."
 
-  DESCRIPTION = <<EOT
-This script allows you to write pretty mkrf_conf scripts
-with autocmd-like functionality.
+  DESCRIPTION = <<~EOT
+    This script allows you to write pretty mkrf_conf scripts
+    with autocmd-like functionality.
 
-The config scripts may be held short and readable.
-EOT
+    The config scripts may be held short and readable.
+  EOT
 
   COPYRIGHT   = "(C) 2009-2019 Bertram Scharpf"
   LICENSE     = "BSD-2-Clause"
