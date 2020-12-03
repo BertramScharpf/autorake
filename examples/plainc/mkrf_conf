@@ -13,7 +13,7 @@ Autorake.configure {
 
   # Normal header and library lookup
   have_header "stdio.h"     # Look if there is a header of this name.
-  have_library "curses"     # Look for library
+  need_library "curses"     # Look for library
 
   # We #include from there.
   incdir :bar, "INCLUDE/anotherproject"
@@ -30,7 +30,7 @@ Autorake.configure {
 
   disable :weirdfeature do
     # Call it as "./mkrf_conf --enable-weirdfeature" to let it fail.
-    have_library "nonexistent"
+    need_library "nonexistent"
   end
 
 

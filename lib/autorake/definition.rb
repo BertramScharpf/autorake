@@ -84,11 +84,16 @@ module Autorake
       else
         l[ /\Alib(.*?)\.so(?:\..*)?\z/, 1]
       end
-      have_library l
+      need_library l
     end
 
     def have_header name
-      c = CheckHeader.new @current, name
+      c = CheckHeader.new @current, name, false
+      @checks.push c
+    end
+
+    def need_header name
+      c = CheckHeader.new @current, name, true
       @checks.push c
     end
 
@@ -103,7 +108,7 @@ module Autorake
     end
     alias have_func have_function
 
-    def have_library name
+    def need_library name
       c = CheckLibrary.new @current, name
       @checks.push c
     end
@@ -209,6 +214,10 @@ module Autorake
   class CheckHeader < Check
     TYPE = "header"
     private
+    def initialize feature, name, need = nil
+      super feature, name
+      @need = need
+    end
     def build_source
       <<~SRC
         #include <#@name>
@@ -217,6 +226,11 @@ module Autorake
     def compile t
       c = Preprocessor.new @config.incdirs, @config.macros, "-w"
       c.cc t.cpp, t.src
+    end
+    def check!
+      r = super
+      r or not @need or raise "Can't continue."
+      r
     end
     def set!
       @config.macros[ "HAVE_HEADER_#{name_upcase}"] = true
