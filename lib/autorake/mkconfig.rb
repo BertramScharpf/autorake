@@ -31,7 +31,16 @@ module Autorake
     end
 
     attr_accessor :outfile
-    attr_bang :clean, :verbose
+    attr_bang :clean
+
+    def verbose!
+      @verbose = true
+      Builder.verbose ||= @verbose
+    end
+    def keep!
+      Builder.verbose = :keep
+    end
+
 
     def initialize definition
       @definition = definition
@@ -47,6 +56,8 @@ module Autorake
       add_option %w(d dump),    "just dump the results", nil, :dump
       add_option %w(v verbose), "lots of ugly debugging information",
                                                         nil, :verbose!
+      add_option %w(k keep),    "keep temporary files",
+                                                        nil, :keep!
       super
       @definition.directories.each { |k,v|
         add_option %W(dir-#{k}), "set directory #{k}", v, :set_dir, k
