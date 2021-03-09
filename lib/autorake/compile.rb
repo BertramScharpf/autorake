@@ -34,16 +34,12 @@ module Autorake
       a.flatten!
       a.compact!
       a.unshift @cmd
-      if Builder.verbose then
-        puts
-        puts a.join " "
-      end
+      puts a.join " " if Builder.verbose
       f = fork do
         $stderr.reopen "/dev/null" if Builder.quiet and not Builder.verbose
         exec *a
       end
       Process.waitpid f
-      print "..." if Builder.verbose
       $?.success? or raise Error, "#{self.class} failed."
     end
 
