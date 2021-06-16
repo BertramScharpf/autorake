@@ -83,7 +83,12 @@ module Autorake
     end
 
     def load_autorake filename = nil
-      @autorake = YAML.load_file filename||Configuration::CONFIG_FILE
+      filename ||= Configuration::CONFIG_FILE
+      @autorake = begin
+        YAML.unsafe_load_file filename
+      rescue NoMethodError
+        YAML.load_file        filename
+      end
       @autorake.do_env
     end
 

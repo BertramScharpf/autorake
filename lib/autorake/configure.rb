@@ -17,7 +17,7 @@ module Autorake
 
     def initialize environment, directories
       @environment = {}
-      environment.each { |k,v| @environment[ k] = v }
+      @environment.update environment
       @directories = directories
       @features = {}
       @parameters = {}
