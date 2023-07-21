@@ -84,9 +84,9 @@ module Autorake
       def bin ; @bin = "#@plain"     ; end
 
       def cleanup
-        File.delete @bin if @bin and File.exists? @bin
-        File.delete @obj if @obj and File.exists? @obj
-        File.delete @cpp if @cpp and File.exists? @cpp
+        File.delete @bin if @bin and File.exist? @bin
+        File.delete @obj if @obj and File.exist? @obj
+        File.delete @cpp if @cpp and File.exist? @cpp
         File.delete @src
       end
 

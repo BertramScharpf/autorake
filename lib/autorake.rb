@@ -126,7 +126,7 @@ module Autorake
     def install under, src, dir, params, depth
       paths_for_install under, src, dir, depth do |dst,here,there|
         install under, there, dir, params, 0 if there
-        if File.directory? here or not File.exists? here then
+        if File.directory? here or not File.exist? here then
           mkdir dst unless File.directory? dst
           if params[ :recursive] then
             (dir_entries here).each { |e|
@@ -134,7 +134,7 @@ module Autorake
             }
           end
         elsif File.symlink? here then
-          rm dst if File.exists? dst
+          rm dst if File.exist? dst
           rdl = File.readlink here
           ln_s rdl, dst
         else
@@ -160,7 +160,7 @@ module Autorake
             }
           end
           rmdir dst
-        elsif File.exists? dst or File.symlink? dst then
+        elsif File.exist? dst or File.symlink? dst then
           rm dst
         end
         if there and (dir_entries there).empty? then
