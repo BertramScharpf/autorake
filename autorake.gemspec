@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.email             = Autorake::AUTHOR
   s.homepage          = Autorake::HOMEPAGE
 
+  s.required_ruby_version = ">= 3.0"
   s.requirements      = "Rake"
   s.add_dependency      "rake", ">=11"
 
